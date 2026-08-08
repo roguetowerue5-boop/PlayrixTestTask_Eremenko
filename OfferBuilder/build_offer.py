@@ -139,11 +139,13 @@ IMAGE_WINDOW_LOCAL = dict(cx=0.0, cy=(63 + 515) / 2 - 353.5, w=458 - 52 + 1, h=5
 # на референсе: центр неймплейта по x совпал с центром рамки день в день.
 NAMEPLATE_LOCAL_TOP = 520 - 353.5  # y верхнего края неймплейта, локально
 
-# Звёзды: по референсу нижний край звёздного пресета лежит на
-# border_top + 54px, всегда по центру рамки (по x). Пресет уже содержит
-# нужные отступы под своё количество звёзд — поэтому кладём его целиком
-# по нижнему краю, без индивидуальной калибровки на число звёзд.
-STARS_LOCAL_BOTTOM = 54 - 353.5
+# Звёзды: замер Coolness — star_center − rim_top ≈ +0.5px (центр на верхнем
+# краю канта), tip_overhang/h ≈ 0.48. У Border.png rim_top (центр) ≈ y=12;
+# золотое ядро пресета чуть выше геометрического центра PNG (~4px), поэтому
+# якорь пресета = 12+5 = 17, чтобы визуальный центр совпал с rim_top.
+BORDER_TOP_MIDLINE = 17
+# Макс. вылет кончика 5★: 131/2 − 17 ≈ 49px.
+STAR_TIP_OVERHANG = 52
 
 # Бейдж: по референсу левый верхний угол бейджа стоит вплотную к левому
 # краю рамки и на border_top + 104px.
@@ -162,22 +164,18 @@ BADGE_TEXT_COLOR = (90, 45, 10, 255)
 # Border.png перед вставкой (LANCZOS).
 NAMEPLATE_WIDTH_FRAC = 0.92
 
-# Звёзды кладутся так, что верх пресета оказывается ВЫШЕ верхнего края
-# рамки (протыкают её насквозь — так и на референсе). Канва одной карточки
-# раньше была ровно border.height и срезала звёзды по верхнему краю. Чтобы
-# осталось место, у канвы карточки есть запас сверху: самый высокий пресет
-# (5starts.png, 149px) с нижним краем на border_top+54 даёт максимальный
-# вылет 149-54=95px над рамкой — берём с запасом.
-CARD_TOP_PAD = 120
-# Минимальный вертикальный зазор между рядами: должен быть >= вылета звёзд,
-# иначе звёзды нижнего ряда наезжают на нижний край верхнего ряда.
-# 5starts overhang ≈ 95px + небольшой «воздух».
-STAR_OVERHANG_MAX = 95
-GRID_GAP_X = 51
-GRID_GAP_Y = STAR_OVERHANG_MAX + 28  # 123px — звёзды не пересекают ряд выше
+# Канва карточки чуть выше рамки — только под вылет кончиков звёзд.
+CARD_TOP_PAD = STAR_TIP_OVERHANG + 8
+STAR_OVERHANG_MAX = STAR_TIP_OVERHANG + 4
+# Плотный шаг как на Coolness (референс ~0.07–0.1 ширины карточки).
+GRID_GAP_X = 28
+GRID_GAP_Y = STAR_OVERHANG_MAX + 6
 # Пресеты звёзд в Cutted чуть крупноваты относительно рамки (особенно 3–5),
 # из‑за чего острия соседних звёзд в пресете визуально слипаются.
 STAR_PRESET_SCALE = 0.88
+# Progressbar.png в Cutted выше, чем полоса на Coolness — чуть уменьшаем,
+# чтобы сетка карточек получила больше высоты и могла вырасти.
+PROGRESS_BAR_SCALE = 0.78
 
 
 # ---------------------------------------------------------------------------
@@ -378,19 +376,20 @@ def compute_grid(card_area: tuple[int, int, int, int], border_w: int, border_h: 
     area_w, area_h = x1 - x0, y1 - y0
     area_cx, area_cy = (x0 + x1) / 2, (y0 + y1) / 2
 
+    # Зазоры ФИКСИРОВАННЫЕ: только сжимаем, если сетка не влезает.
+    # Раньше при нехватке высоты gap_x пересчитывался «на всю ширину» и
+    # раздувался (51 → 95) — карточки расползались по горизонтали.
+    if GRID_COLS * border_w + (GRID_COLS - 1) * gap_x > area_w:
+        gap_x = max(4, (area_w - GRID_COLS * border_w) // (GRID_COLS - 1)) if area_w > GRID_COLS * border_w else 4
+        log.warning("Область карточек узкая — gap_x сжат до %dpx.", gap_x)
+    if GRID_ROWS * border_h + (GRID_ROWS - 1) * gap_y > area_h:
+        min_gap_y = STAR_OVERHANG_MAX + 4
+        natural_y = max(4, (area_h - GRID_ROWS * border_h) // (GRID_ROWS - 1)) if area_h > GRID_ROWS * border_h else 4
+        gap_y = min(gap_y, max(min_gap_y, natural_y) if area_h > GRID_ROWS * border_h + min_gap_y else natural_y)
+        log.warning("Область карточек низкая — gap_y сжат до %dpx.", gap_y)
+
     grid_w = GRID_COLS * border_w + (GRID_COLS - 1) * gap_x
     grid_h = GRID_ROWS * border_h + (GRID_ROWS - 1) * gap_y
-
-    if grid_w > area_w or grid_h > area_h:
-        # Область карточек теснее — сжимаем зазор (но не ниже вылета звёзд
-        # по Y), а не рамки. Если и это не влезает — scale считается снаружи.
-        gap_x = max(4, (area_w - GRID_COLS * border_w) // (GRID_COLS - 1)) if area_w > GRID_COLS * border_w else 4
-        min_gap_y = STAR_OVERHANG_MAX + 8
-        natural_y = max(4, (area_h - GRID_ROWS * border_h) // (GRID_ROWS - 1)) if area_h > GRID_ROWS * border_h else 4
-        gap_y = max(min_gap_y, natural_y) if area_h > GRID_ROWS * border_h + min_gap_y else natural_y
-        grid_w = GRID_COLS * border_w + (GRID_COLS - 1) * gap_x
-        grid_h = GRID_ROWS * border_h + (GRID_ROWS - 1) * gap_y
-        log.warning("Область карточек теснее референса — зазор сжат до %dx%dpx.", gap_x, gap_y)
 
     start_x = area_cx - grid_w / 2
     start_y = area_cy - grid_h / 2
@@ -406,10 +405,11 @@ def compute_grid(card_area: tuple[int, int, int, int], border_w: int, border_h: 
 
 def fit_card_scale(card_area: tuple[int, int, int, int], border_w: int, border_h: int) -> float:
     """Скейл карточки, чтобы сетка 5×2 с ФИКСИРОВАННЫМИ зазорами
-    (включая вылет звёзд) влезла в область. 1.0 — родной размер Border.png.
+    (включая вылет звёзд) заполнила область. 1.0 — родной размер Border.png.
 
     Зазоры не скейлим: они задают «воздух» под вылет звёзд в пикселях
-    подложки. Поэтому скейл считает только размер самих рамок:
+    подложки. Скейл считает размер рамок; если место есть — можно чуть
+    апскейлить (как на Coolness/Tour), а не оставлять пустые поля:
         COLS * border_w * s + (COLS-1) * gap_x <= area_w
     """
     x0, y0, x1, y1 = card_area
@@ -418,8 +418,8 @@ def fit_card_scale(card_area: tuple[int, int, int, int], border_w: int, border_h
     room_h = area_h - (GRID_ROWS - 1) * GRID_GAP_Y
     if room_w <= 0 or room_h <= 0:
         return 0.5
-    scale = min(1.0, room_w / (GRID_COLS * border_w), room_h / (GRID_ROWS * border_h))
-    return max(0.5, scale)
+    scale = min(room_w / (GRID_COLS * border_w), room_h / (GRID_ROWS * border_h))
+    return max(0.5, min(scale, 1.12))
 
 
 def verify_grid_fits(card_area: tuple[int, int, int, int], positions: list[tuple[int, int]],
@@ -839,10 +839,8 @@ def compose_card(item: CardItem, materials: dict[str, Image.Image], icons_dir: P
         shadow=NAMEPLATE_STYLE["shadow"],
     )
 
-    # 4. Звёзды — пресет выбирается по количеству, кладётся нижним краем
-    #    на фиксированную отметку и по центру рамки. Пресет цельный (никогда
-    #    не собирается из одиночных Star.png по одной) — сколько звёзд
-    #    нужно, такой файл и берём: 2stars.png, 3stars.png и т.д.
+    # 4. Звёзды — пресет по количеству; центр пресета на середине верхнего
+    #    канта рамки, по центру по x. Пресет цельный (не из одиночных Star.png).
     star_key = STAR_ASSET_BY_RARITY.get(item.rarity, STAR_ASSET_BY_RARITY[1])
     stars = materials[star_key]
     if STAR_PRESET_SCALE != 1.0:
@@ -851,7 +849,10 @@ def compose_card(item: CardItem, materials: dict[str, Image.Image], icons_dir: P
              max(1, round(stars.height * STAR_PRESET_SCALE))),
             Image.LANCZOS,
         )
-    stars_pos = space.to_canvas_topleft(0.0, STARS_LOCAL_BOTTOM - stars.height / 2, stars.width, stars.height)
+    stars_pos = (
+        round(space.cx - stars.width / 2),
+        round(BORDER_TOP_MIDLINE - stars.height / 2),
+    )
     canvas.alpha_composite(stars, pad_xy(stars_pos))
 
     # 5-6. Бейдж: новый Badge.png без вшитого текста — рисуем "+N" прямо
@@ -932,7 +933,13 @@ def build_offer(config: OfferConfig, cutted_dir: Path, reference_path: Path, ico
         pb_full = materials["progressbar"]
         pb_bbox = Image.eval(pb_full.getchannel("A"), lambda a: 255 if a > 100 else 0).getbbox() or pb_full.getbbox()
         pb = pb_full.crop(pb_bbox)
-        margin_top, margin_bottom = 10, 10
+        if PROGRESS_BAR_SCALE != 1.0:
+            pb = pb.resize(
+                (max(1, round(pb.width * PROGRESS_BAR_SCALE)),
+                 max(1, round(pb.height * PROGRESS_BAR_SCALE))),
+                Image.LANCZOS,
+            )
+        margin_top, margin_bottom = 8, 8
         pb_x = round((bg.width - pb.width) / 2)
         pb_y = card_area[1] + margin_top
         canvas.alpha_composite(pb, (pb_x, pb_y))
@@ -968,9 +975,7 @@ def build_offer(config: OfferConfig, cutted_dir: Path, reference_path: Path, ico
         canvas.alpha_composite(card, (x, paste_y))
 
     log.info("Шаг 6. Проверка размещения — см. предупреждения выше (их отсутствие значит, что всё встало штатно).")
-
-    if config.page is not None:
-        _redraw_footer_set(canvas, int(config.page), int(config.page_total or 10), card_area)
+    # Футер SET N/M оставляем как впечатан в BackGround.png — не перерисовываем.
 
     if canvas.size != OUTPUT_SIZE:
         log.info("Приведение к финальному размеру: %s -> %s", canvas.size, OUTPUT_SIZE)
