@@ -1,0 +1,48 @@
+# Пример конфига коллекции для build_offer.py
+#
+# title         — заголовок коллекции (печатается в ленте подложки).
+# page          — номер страницы → футер «SET N/M» (перерисовывается поверх фона).
+# page_total    — знаменатель в футере (по умолчанию 10).
+# set_progress  — подпись на прогресс-баре (нужна только если show_progressbar: true).
+# show_progressbar — прогресс-бар не описан в самом rule_building.txt,
+#                     но материал Progressbar.png есть в Cutted — включается по желанию.
+# items         — ровно 10 карточек, по 5 в ряд, слева направо, сверху вниз
+#                 (нумерация бейджей в правиле тоже считается "сверху слева").
+#   name    — название товара, печатается в неймплейт.
+#   rarity  — количество звёзд (1-5; в тексте правила упомянуто 1-4, но
+#             в Cutted есть и пресет на 5 звёзд — поддерживаются оба).
+#   image   — необязательно: имя файла из C:\Playrix\Icons или полный путь.
+#             Если не задано — подставляется заглушка (CardC6_card_01.png).
+#   badge   — необязательно: текст на бейдже ("+2" и т.п.). Если не задан —
+#             бейджа на карточке не будет вовсе.
+
+title: "Farming"
+page: 1
+page_total: 10
+set_progress: "8/25"
+show_progressbar: true
+
+items:
+  - name: "Star Map"
+    rarity: 1
+  - name: "Star Map"
+    rarity: 1
+    badge: "+2"
+  - name: "Star Map"
+    rarity: 2
+  - name: "Moon Clock"
+    rarity: 2
+    badge: "+2"
+  - name: "Lunar Globe"
+    rarity: 5
+  - name: "Star Map"
+    rarity: 3
+  - name: "Star Map"
+    rarity: 4
+    badge: "+2"
+  - name: "Star Map"
+    rarity: 4
+  - name: "Moon Clock"
+    rarity: 4
+  - name: "Lunar Globe"
+    rarity: 4

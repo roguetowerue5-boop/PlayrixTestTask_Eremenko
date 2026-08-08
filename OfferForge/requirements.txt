@@ -1,0 +1,14 @@
+fastapi>=0.115
+uvicorn[standard]>=0.32
+httpx>=0.27
+pydantic>=2.9
+PyYAML>=6.0
+Jinja2>=3.1
+Pillow>=10.4
+numpy>=1.26
+python-dotenv>=1.0
+# Нужен для загрузки файла на экране «Составляющие» (Form/UploadFile в FastAPI).
+# Без него падает импорт всего приложения, а не только этого экрана.
+# Также нужен экрану «Собрать коллекцию» (картинки слотов).
+python-multipart>=0.0.9
+fal-client>=0.5

@@ -1,0 +1,54 @@
+# Набор (сет) из 10 карточек — оффер целиком.
+#
+# Набор НЕ пересобирает раскладку карточки у себя. Слой kind: template
+# вставляет в каждую ячейку готовую карточку по шаблону `card`: рамка,
+# звёзды и подпись рисуются в собственном масштабе и уменьшаются целиком.
+# Раньше набор клал арт и рамку по отдельности, и рамка растягивалась под
+# ячейку, а звёзд с подписями не было вовсе.
+
+id: card_set
+name: Набор из 10 карточек
+canvas_w: 1680
+canvas_h: 1220
+background: "#1B1030"
+
+layers:
+  # Фон панели набора
+  - id: panel
+    kind: gradient
+    z: 0
+    color: "${palette.0}"
+    color_to: "${palette.1}"
+    box: { x: 0, y: 0, w: 1680, h: 1220 }
+
+  - id: panel_frame
+    kind: part
+    part: panel
+    z: 5
+    box: { x: 0, y: 0, w: 1680, h: 1220 }
+
+  # Заголовок набора
+  - id: set_title
+    kind: text
+    z: 40
+    text_slot: set_title
+    box: { x: 340, y: 34, w: 1000, h: 84 }
+    style:
+      size: 64
+      color: "#FFE9A8"
+      stroke_color: "#4A1D00"
+      stroke_width: 6
+      align: center
+      uppercase: true
+      max_lines: 1
+
+  # Десять готовых карточек: 5 колонок × 2 ряда.
+  # Ячейка 300×510 держит пропорцию карточки 512×720 без обрезки.
+  - id: cards
+    kind: template
+    template: card
+    z: 10
+    repeat_for: elements
+    grid: [5, 2]
+    gap: 20
+    box: { x: 40, y: 140, w: 1600, h: 1040 }

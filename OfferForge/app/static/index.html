@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OfferForge</title>
+<style>
+  :root {
+    --bg:#0f0d15; --panel:#17141f; --panel2:#1e1a29; --line:#2c2638;
+    --ink:#ece7f5; --muted:#8d84a6; --accent:#e8b44a; --accent-ink:#231600;
+    --ok:#4fce87; --bad:#ef6a6c; --warn:#e0a33c;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:14px/1.55 "Segoe UI", system-ui, sans-serif; }
+  a { color:var(--accent); }
+
+  /* ---- каркас ---- */
+  .app { display:grid; grid-template-columns:236px 1fr; min-height:100vh; }
+  nav { background:var(--panel); border-right:1px solid var(--line); padding:18px 0;
+        display:flex; flex-direction:column; min-height:100vh; }
+  nav .brand { font-size:18px; font-weight:700; padding:0 20px 18px;
+                letter-spacing:.3px; }
+  nav .group { color:var(--muted); font-size:11px; text-transform:uppercase;
+               letter-spacing:.8px; padding:16px 20px 6px; }
+  nav button { display:block; width:100%; text-align:left; background:none;
+               border:none; border-left:3px solid transparent; color:var(--ink);
+               padding:9px 20px; font:inherit; cursor:pointer; }
+  nav button:hover { background:#1d1927; }
+  nav button.on { background:#241d33; border-left-color:var(--accent);
+                  color:var(--accent); font-weight:600; }
+  nav .nav-spacer { flex:1; min-height:12px; }
+  nav .billing {
+    margin:8px 12px 4px; padding:12px 12px 10px;
+    background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+    font-size:12px; line-height:1.4;
+  }
+  nav .billing .blabel {
+    color:var(--muted); font-size:10px; text-transform:uppercase;
+    letter-spacing:.7px; margin-bottom:2px;
+  }
+  nav .billing .bspent {
+    font-size:20px; font-weight:700; color:var(--warn); letter-spacing:.2px;
+  }
+  nav .billing .bremain {
+    margin-top:8px; padding-top:8px; border-top:1px solid var(--line);
+  }
+  nav .billing .bremain .val { font-size:15px; font-weight:600; color:var(--ok); }
+  nav .billing .brow {
+    display:flex; justify-content:space-between; gap:8px;
+    margin-top:4px; color:var(--muted); font-size:11px;
+  }
+  nav .billing .brow b { color:var(--ink); font-weight:600; }
+  nav .billing .brefresh {
+    margin-top:8px; font-size:11px; color:var(--muted); cursor:pointer;
+    background:none; border:none; padding:0; text-decoration:underline;
+    text-underline-offset:2px;
+  }
+  nav .billing .brefresh:hover { color:var(--accent); }
+  nav .foot { padding:12px 20px 16px; font-size:11px; color:var(--muted); }
+
+  main { padding:26px 32px; overflow:auto; max-height:100vh; }
+  h2 { margin:0 0 4px; font-size:22px; }
+  .sub { color:var(--muted); margin:0 0 22px; }
+
+  /* ---- элементы ---- */
+  .card { background:var(--panel); border:1px solid var(--line);
+          border-radius:12px; padding:18px 20px; margin-bottom:16px; }
+  .card h3 { margin:0 0 4px; font-size:15px; display:flex; align-items:center;
+             gap:10px; }
+  .card .note { color:var(--muted); font-size:12px; margin:0 0 14px; }
+  .card .head { display:flex; justify-content:space-between; align-items:flex-start;
+                gap:12px; }
+
+  label { display:block; font-size:11px; color:var(--muted); margin:0 0 5px;
+          text-transform:uppercase; letter-spacing:.5px; }
+  input, select, textarea {
+    width:100%; background:var(--panel2); color:var(--ink);
+    border:1px solid var(--line); border-radius:8px; padding:9px 11px; font:inherit; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); }
+  textarea { resize:vertical; }
+  .field { margin-bottom:14px; }
+  .row { display:flex; gap:12px; align-items:flex-end; }
+  .row > * { flex:1; }
+  .row .fit { flex:0 0 auto; }
+
+  button.btn { background:var(--panel2); color:var(--ink); border:1px solid var(--line);
+               border-radius:8px; padding:8px 14px; font:inherit; cursor:pointer;
+               white-space:nowrap; }
+  button.btn:hover { border-color:var(--accent); }
+  button.btn.pri { background:var(--accent); color:var(--accent-ink);
+                   border-color:var(--accent); font-weight:600; }
+  button.btn.danger { color:var(--bad); border-color:#452127; }
+  button.btn:disabled { opacity:.45; cursor:default; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; }
+
+  .pill { display:inline-block; font-size:11px; padding:2px 9px; border-radius:20px;
+          background:#272033; color:var(--muted); }
+  .pill.ok { background:#16321f; color:var(--ok); }
+  .pill.bad { background:#361a1c; color:var(--bad); }
+  .pill.warn { background:#332715; color:var(--warn); }
+
+  .hint { font-size:11px; color:var(--muted); margin-top:6px; }
+  .mono { font-family:Consolas, "Cascadia Mono", monospace; font-size:12.5px; }
+
+  .rot { border:1px solid var(--line); border-radius:9px; padding:12px;
+         margin-bottom:8px; background:var(--panel2); }
+  .rot .top { display:flex; gap:10px; align-items:center; margin-bottom:8px; }
+  .rot .idx { font-size:11px; color:var(--muted); flex:0 0 auto; }
+
+  .log { font-family:Consolas, monospace; font-size:12px; max-height:280px;
+         overflow:auto; }
+  .log div { padding:2px 0; border-bottom:1px solid #201b2c; }
+  .log .ok { color:var(--ok); } .log .bad { color:var(--bad); }
+  .log .dim { color:var(--muted); } .log .warn { color:var(--warn); }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:14px; }
+  .grid img { width:100%; border-radius:8px; border:1px solid var(--line); display:block; }
+  .stats { display:flex; gap:26px; flex-wrap:wrap; }
+  .stats div span { display:block; font-size:21px; font-weight:700; }
+  .stats div small { color:var(--muted); font-size:11px; }
+  .empty { color:var(--muted); text-align:center; padding:56px 0; }
+
+  .split { display:grid; grid-template-columns:260px 1fr; gap:16px; }
+  .filelist button { display:block; width:100%; text-align:left; background:var(--panel2);
+                     border:1px solid var(--line); border-radius:8px; color:var(--ink);
+                     padding:9px 11px; font:inherit; cursor:pointer; margin-bottom:6px; }
+  .filelist button.on { border-color:var(--accent); color:var(--accent); }
+  .filelist small { display:block; color:var(--muted); font-size:11px; }
+  .editor { width:100%; min-height:460px; font-family:Consolas, monospace;
+            font-size:13px; line-height:1.5; tab-size:2; white-space:pre; }
+
+  .toast { position:fixed; right:24px; bottom:24px; background:var(--panel2);
+           border:1px solid var(--line); border-left:3px solid var(--accent);
+           border-radius:8px; padding:12px 16px; max-width:420px; z-index:50;
+           box-shadow:0 8px 28px #0008; }
+  .toast.bad { border-left-color:var(--bad); }
+  .toast.ok { border-left-color:var(--ok); }
+  .hide { display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav>
+    <div class="brand">OfferForge</div>
+    <button data-page="fill" class="on">Создание наполнения</button>
+    <button data-page="collection">Собрать коллекцию</button>
+    <div class="group">AI</div>
+    <button data-page="providers">Провайдеры</button>
+    <button data-page="models">Модели</button>
+    <button data-page="lora">LoRA Trainer</button>
+    <div class="group">Поведение</div>
+    <button data-page="prompts">Промпты</button>
+    <div class="nav-spacer"></div>
+    <div class="billing" id="navBilling">
+      <div class="blabel">Потрачено суммарно</div>
+      <div class="bspent" id="navSpent">—</div>
+      <div class="bremain" id="navRemainWrap" hidden>
+        <div class="blabel">Остаток на API</div>
+        <div class="val" id="navRemain">—</div>
+        <div id="navAccounts"></div>
+      </div>
+      <button type="button" class="brefresh" id="navBillingRefresh">обновить баланс</button>
+    </div>
+    <div class="foot" id="navFoot"></div>
+  </nav>
+
+  <main>
+    <!-- ================= НАПОЛНЕНИЕ ================= -->
+    <section id="page-fill">
+      <h2>Создание наполнения коллекции</h2>
+      <p class="sub">Название и описание → бриф → 10 объектов → арт.
+        Стиль тянется из <span class="mono">Icons</span> (референсы + опционально LoRA).
+        Можно сразу <b>Создать 10</b> или сначала <b>Придумать объекты</b>, а картинки — по одной.</p>
+
+      <div class="card">
+        <div class="field"><label>Название коллекции</label>
+          <input id="fillTitle" value="Farming" placeholder="Coolness"></div>
+        <div class="field">
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span>Описание коллекции</span>
+            <button type="button" class="btn" id="fillDescDice" title="Сгенерировать описание по названию"
+              style="font-size:16px;line-height:1;padding:4px 10px;min-width:36px">🎲</button>
+          </label>
+          <textarea id="fillDesc" style="min-height:100px"
+            placeholder="Тема, эпоха, настроение, что обязательно включить или избежать."></textarea>
+          <div class="hint">🎲 — промпт <span class="mono">suggest_description</span> + название</div>
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span>Доп. к генерации арта</span>
+            <button type="button" class="btn" id="fillArtExtraDice" title="Сгенерировать указания к арту"
+              style="font-size:16px;line-height:1;padding:4px 10px;min-width:36px">🎲</button>
+          </label>
+          <textarea id="fillArtExtra" style="min-height:64px"
+            placeholder="Общие правки для всех картинок: стиль, ракурс, чего избегать…"></textarea>
+          <div class="hint">Уходит в <span class="mono">art</span> · 🎲 — <span class="mono">suggest_art_extra</span></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Пресет моделей</label>
+            <select id="fillPreset"></select>
+            <div class="hint" id="fillPresetNote">Роли: brief → concept → render</div></div>
+          <div class="field" style="flex:0 0 140px"><label>Параллельно</label>
+            <input id="fillConc" type="number" min="1" max="8" value="3"></div>
+          <div class="field" style="flex:0 0 160px"><label>Вариантов набора</label>
+            <input id="fillVariantsN" type="number" min="3" max="5" value="3">
+            <div class="hint">ТЗ: 3–5 углов</div></div>
+        </div>
+        <div class="btns">
+          <button class="btn pri" id="fillGo">Создать 10 карточек</button>
+          <button class="btn" id="fillPlan">Придумать объекты</button>
+          <button class="btn" id="fillNextOne" disabled>Сгенерировать следующую</button>
+          <button class="btn" id="fillToAssemble" disabled>Перенести в сборку</button>
+        </div>
+        <div id="fillVariantBar" class="btns" style="margin-top:10px"></div>
+        <div class="hint" id="fillVariantHint" style="margin-top:6px"></div>
+        <div class="hint" style="margin-top:8px">
+          <b>Придумать объекты</b> — 3–5 вариантов списка (без картинок); выбери вариант, потом арт.
+          <b>Создать 10</b> — придумывает варианты и сразу рисует активный (первый).
+        </div>
+        <div class="hint" id="fillStatus" style="margin-top:10px"></div>
+        <div class="log" id="fillLog" style="margin-top:10px"><div class="dim">Ожидание запуска…</div></div>
+      </div>
+
+      <div class="card">
+        <h3>Карточки <span class="pill" id="fillConceptPill"></span></h3>
+        <div class="grid" id="fillGrid"><div class="empty">Пока пусто</div></div>
+      </div>
+    </section>
+
+    <!-- ================= КОЛЛЕКЦИЯ ================= -->
+    <section id="page-collection" class="hide">
+      <h2>Собрать коллекцию</h2>
+      <p class="sub">Страница из 10 слотов на материалах Cutted — без запросов к моделям.
+        Название, звёзды, заточка и арт задаются сразу для всех слотов.</p>
+
+      <div class="card">
+        <div class="row" style="align-items:flex-end">
+          <div class="field" style="flex:1;margin-bottom:0"><label>Название коллекции</label>
+            <input id="colTitle" value="Farming" placeholder="Coolness"></div>
+          <div class="btns" style="margin:0 0 0 12px">
+            <button class="btn pri" id="colGo">Собрать коллекцию</button>
+          </div>
+        </div>
+        <div class="hint" id="colStatus" style="margin-top:8px"></div>
+        <div class="hint" id="colPaths" style="margin-top:4px"></div>
+      </div>
+
+      <div id="colSlotList" style="margin-top:14px"></div>
+
+      <div class="card" style="margin-top:14px">
+        <h3>Результат</h3>
+        <div class="grid" id="colResult"><div class="empty">Пока пусто</div></div>
+      </div>
+    </section>
+
+    <!-- ================= LoRA TRAINER ================= -->
+    <section id="page-lora" class="hide">
+      <h2>LoRA Trainer</h2>
+      <p class="sub">Обучение Flux LoRA на <span class="mono">Icons</span> через fal.ai.
+        OpenRouter ключ остаётся для текста и отката картинок — оба ключа работают вместе.</p>
+
+      <div class="card">
+        <h3>1. Ключ fal.ai</h3>
+        <p class="note">Из кабинета fal → API Keys. Хранится в <span class="mono">config/secrets.json</span> как провайдер <span class="mono">fal_lora</span>.</p>
+        <div class="row">
+          <div class="field"><label>FAL_KEY</label>
+            <input id="loraKey" type="password" placeholder="fal-…" autocomplete="off"></div>
+          <div class="fit" style="padding-bottom:14px">
+            <button class="btn pri" id="loraSaveKey">Сохранить ключ</button>
+          </div>
+        </div>
+        <div class="hint" id="loraKeyStatus">ключ не сохранён</div>
+      </div>
+
+      <div class="card">
+        <h3>2. Датасет</h3>
+        <p class="note">Квадраты 1024² + подписи с триггером <span class="mono">plrxcard</span> из папки Icons.</p>
+        <div class="stats" id="loraDatasetStats" style="margin-bottom:12px">
+          <div><span>—</span><small>картинок</small></div>
+          <div><span>—</span><small>zip, МБ</small></div>
+          <div><span>—</span><small>Icons</small></div>
+        </div>
+        <div class="btns">
+          <button class="btn" id="loraRebuild">Собрать / обновить датасет</button>
+        </div>
+        <div class="hint" id="loraDatasetHint"></div>
+      </div>
+
+      <div class="card">
+        <h3>3. Обучение</h3>
+        <p class="note">Модель <span class="mono">fal-ai/flux-lora-fast-training</span>, режим стиля.
+          Zip ~127&nbsp;МБ грузится multipart через fal-client. После 500 steps стиль часто слабый — лучше 1000–1200 (~$10–12).</p>
+        <div class="row">
+          <div class="field" style="flex:0 0 160px"><label>Steps</label>
+            <input id="loraSteps" type="number" min="200" max="2500" value="1100"></div>
+          <div class="field"><label>Trigger word</label>
+            <input id="loraTrigger" value="plrxcard"></div>
+        </div>
+        <div class="btns">
+          <button class="btn pri" id="loraTrain">Запустить обучение</button>
+          <button class="btn" id="loraRefresh">Обновить статус</button>
+        </div>
+        <div class="hint" id="loraJobStatus" style="margin-top:10px"></div>
+        <div class="log" id="loraLog" style="margin-top:10px"><div class="dim">Лог обучения появится здесь…</div></div>
+      </div>
+
+      <div class="card">
+        <h3>4. Подключить к генерации</h3>
+        <p class="note">После COMPLETED URL весов подставится сам. Можно вставить вручную.</p>
+        <div class="field"><label>URL .safetensors</label>
+          <input id="loraUrl" placeholder="https://v3.fal.media/files/…/lora.safetensors"></div>
+        <div class="btns">
+          <button class="btn pri" id="loraApply">Включить fal_lora + сохранить URL</button>
+        </div>
+        <div class="hint" id="loraApplyHint">После этого в «Создании наполнения» выбери пресет <b>LoRA (Icons)</b>.</div>
+      </div>
+    </section>
+
+    <section id="page-providers" class="hide">
+      <h2>Провайдеры</h2>
+      <p class="sub">Адрес API и ключ к нему. Каждый вариант пайплайна может использовать своего провайдера.</p>
+      <div id="providerList"></div>
+
+      <div class="card">
+        <h3>Добавить провайдера</h3>
+        <p class="note">Ключ сохраняется в config/secrets.json — в репозиторий не попадает.</p>
+        <div class="row">
+          <div class="field"><label>Идентификатор</label>
+            <input id="npId" placeholder="my_api"></div>
+          <div class="field"><label>Тип</label><select id="npKind"></select></div>
+        </div>
+        <div class="field"><label>API Endpoint</label>
+          <input id="npUrl" class="mono" placeholder="https://api.example.com/v1/chat/completions"></div>
+        <div class="row">
+          <div class="field"><label>API Key</label>
+            <input id="npKey" type="password" placeholder="оставь пустым для локального сервиса"></div>
+          <div class="field"><label>Возможности</label>
+            <select id="npCaps" multiple size="3" style="height:auto">
+              <option value="text" selected>text</option>
+              <option value="vision">vision</option>
+              <option value="image">image</option>
+            </select></div>
+        </div>
+        <button class="btn pri" id="npAdd">Добавить</button>
+      </div>
+    </section>
+
+    <!-- ================= МОДЕЛИ ================= -->
+    <section id="page-models" class="hide">
+      <h2>Модели</h2>
+      <p class="sub">Какая модель отвечает за какую задачу. У каждой может быть свой провайдер и своя ротация.</p>
+
+      <div class="card">
+        <div class="row">
+          <div class="field"><label>Пресет моделей</label><select id="mPreset"></select></div>
+          <div class="fit btns" style="padding-bottom:14px">
+            <button class="btn" id="mSaveAs">Сохранить как…</button>
+            <button class="btn" id="mExport">Экспорт</button>
+            <button class="btn" id="mImport">Импорт</button>
+            <button class="btn" id="mReload">Обновить</button>
+            <button class="btn danger" id="mDelete">Удалить</button>
+          </div>
+        </div>
+        <div class="hint" id="mPresetNote"></div>
+      </div>
+
+      <div id="variantList"></div>
+      <input type="file" id="importFile" accept=".json,.yaml,.yml" class="hide">
+    </section>
+
+    <!-- ================= ПРОМПТЫ ================= -->
+    <section id="page-prompts" class="hide">
+      <h2>Промпты</h2>
+      <p class="sub">Шаблоны запросов к моделям текущего UI.
+        Правятся без перезапуска; в справке — только декораторы, которые реально вызываются.</p>
+
+      <div class="split">
+        <div>
+          <div class="card" style="padding:14px">
+            <div class="filelist" id="promptList"></div>
+          </div>
+          <div class="card" style="padding:14px">
+            <h3 style="font-size:13px">Декораторы</h3>
+            <div id="decoList" class="hint"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="head">
+            <div>
+              <h3 id="pName">—</h3>
+              <p class="note" id="pMeta"></p>
+            </div>
+            <div class="btns">
+              <button class="btn" id="pValidate">Проверить</button>
+              <button class="btn" id="pRestore">Бэкапы</button>
+              <button class="btn pri" id="pSave">Сохранить</button>
+            </div>
+          </div>
+          <textarea id="pEditor" class="editor mono" spellcheck="false"></textarea>
+          <div class="hint" id="pStatus"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast hide" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+let CFG=null, RUN=null, PROMPT=null, VARDATA=null;
+
+/* ---------- инфраструктура ---------- */
+function toast(msg, kind="") {
+  const t = $("#toast");
+  t.className = "toast " + kind;
+  t.textContent = msg;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.add("hide"), 4200);
+}
+
+/** Стоимость вызова модели: −0.04¢ или −$0.12 */
+function formatCost(usd) {
+  const n = Number(usd);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  if (n < 0.01) return `−${(n * 100).toFixed(2)}¢`;
+  return `−$${n.toFixed(2)}`;
+}
+
+function toastCost(label, usd, kind="ok") {
+  const c = formatCost(usd);
+  if (!c) { if (label) toast(label, kind); return; }
+  toast(label ? `${label} · ${c}` : c, kind);
+  // Мягко обновить локальный счётчик без запроса к API.
+  if (Number(usd) > 0 && NAV_BILLING) {
+    NAV_BILLING.spent_usd = +(NAV_BILLING.spent_usd || 0) + (+usd || 0);
+    renderBilling(NAV_BILLING);
+  }
+}
+
+let NAV_BILLING = null;
+let BILLING_TIMER = null;
+
+function renderBilling(d) {
+  NAV_BILLING = d || NAV_BILLING;
+  if (!NAV_BILLING) return;
+  const spent = Number(NAV_BILLING.spent_usd || 0);
+  const elSpent = $("#navSpent");
+  if (elSpent) {
+    if (spent <= 0) elSpent.textContent = "$0.00";
+    else if (spent < 0.01) elSpent.textContent = `−${(spent * 100).toFixed(2)}¢`;
+    else elSpent.textContent = `−$${spent.toFixed(2)}`;
+  }
+  const wrap = $("#navRemainWrap");
+  const accounts = NAV_BILLING.accounts || [];
+  const okAccounts = accounts.filter(a => a && a.ok);
+  if (!wrap) return;
+  if (!okAccounts.length && NAV_BILLING.remaining_usd == null) {
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  const rem = NAV_BILLING.remaining_usd;
+  $("#navRemain").textContent = rem == null ? "—" : `$${Number(rem).toFixed(2)}`;
+  const box = $("#navAccounts");
+  if (!box) return;
+  box.innerHTML = okAccounts.map(a => {
+    const name = a.provider === "fal" ? "fal.ai" : "OpenRouter";
+    let left = a.account_remaining_usd ?? a.limit_remaining_usd ?? a.remaining_usd;
+    let used = a.account_usage_usd ?? a.usage_usd;
+    const bits = [];
+    if (left != null) bits.push(`остаток <b>$${Number(left).toFixed(2)}</b>`);
+    if (used != null) bits.push(`списано <b>$${Number(used).toFixed(2)}</b>`);
+    if (!bits.length) return "";
+    return `<div class="brow"><span>${name}</span><span>${bits.join(" · ")}</span></div>`;
+  }).filter(Boolean).join("");
+}
+
+async function refreshBilling(silent) {
+  try {
+    const d = await api("/api/billing");
+    renderBilling(d);
+  } catch (e) {
+    if (!silent) toast(e.message, "bad");
+    const wrap = $("#navRemainWrap");
+    if (wrap && !NAV_BILLING) {
+      wrap.hidden = false;
+      $("#navRemain").textContent = "нет ключей";
+    }
+  }
+}
+
+async function api(path, opts={}) {
+  const r = await fetch(path, {
+    headers: {"Content-Type":"application/json"},
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    let detail = data.detail;
+    if (Array.isArray(detail))
+      detail = detail.map(x => x.msg || JSON.stringify(x)).join("; ");
+    if (r.status === 404)
+      throw new Error((detail || "Not Found") +
+        " — перезапусти OfferForge (run.bat), чтобы подтянуть новые API");
+    throw new Error(detail || `HTTP ${r.status}`);
+  }
+  return data;
+}
+$$("nav button[data-page]").forEach(b => b.onclick = () => show(b.dataset.page));
+function show(page) {
+  $$("nav button[data-page]").forEach(b => b.classList.toggle("on", b.dataset.page===page));
+  $$("main > section").forEach(s => s.classList.toggle("hide", s.id !== "page-"+page));
+  if (page==="providers") loadProviders();
+  if (page==="models") loadVariants();
+  if (page==="prompts") loadPrompts();
+  if (page==="collection") loadCollection();
+  if (page==="fill") loadFill();
+  if (page==="lora") loadLora();
+}
+
+
+/* ================= НАПОЛНЕНИЕ ================= */
+const FILL = {
+  run_id: null,
+  palette: [],
+  concept: "",
+  angle: "",
+  active: 0,
+  variants: [],
+  cost_usd: 0,
+  cards: Array.from({length: 10}, (_, i) => ({
+    slot: i + 1, name: "", subject: "", category: "1", rarity: 1,
+    url: null, file: null, error: null, extra: "",
+  })),
+};
+
+function fillDrawVariants() {
+  const bar = $("#fillVariantBar");
+  const hint = $("#fillVariantHint");
+  if (!bar) return;
+  const vars = FILL.variants || [];
+  if (!vars.length) {
+    bar.innerHTML = "";
+    if (hint) hint.textContent = "";
+    return;
+  }
+  bar.innerHTML = vars.map((v, i) => {
+    const on = i === FILL.active ? "pri" : "";
+    const label = v.angle
+      ? `Вариант ${i + 1}: ${colEsc(v.angle).slice(0, 42)}`
+      : `Вариант ${i + 1}`;
+    return `<button type="button" class="btn ${on}" data-variant="${i}">${label}</button>`;
+  }).join("");
+  $$("#fillVariantBar [data-variant]").forEach(b => {
+    b.onclick = () => fillSelectVariant(+b.dataset.variant);
+  });
+  const cur = vars[FILL.active] || {};
+  if (hint) {
+    const subs = (cur.subjects || []).filter(Boolean).slice(0, 5).join(" · ");
+    hint.innerHTML =
+      `<b>Вариант ${FILL.active + 1}/${vars.length}</b>` +
+      (cur.concept ? ` — ${colEsc(cur.concept)}` : "") +
+      (subs ? `<div class="dim" style="margin-top:4px">${colEsc(subs)}…</div>` : "");
+  }
+  $("#fillConceptPill").textContent = cur.concept || FILL.concept || "";
+}
+
+async function fillSelectVariant(index) {
+  if (!FILL.run_id) return;
+  if (index === FILL.active) {
+    fillDrawVariants();
+    return;
+  }
+  try {
+    const d = await api("/api/collection/fill/select-variant", {
+      method: "POST",
+      body: { run_id: FILL.run_id, variant_index: index },
+    });
+    fillApplyPlan(d);
+    fillLog(`Активен вариант ${index + 1}` + (d.angle ? ` — ${d.angle}` : ""), "ok");
+    toast(`Вариант ${index + 1}`, "ok");
+  } catch (e) {
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+  }
+}
+
+function fillLog(text, cls) {
+  const box = $("#fillLog");
+  if (box.dataset.clean !== "1") { box.innerHTML = ""; box.dataset.clean = "1"; }
+  const d = document.createElement("div");
+  if (cls) d.className = cls;
+  d.textContent = new Date().toLocaleTimeString() + "  " + text;
+  box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+
+function fillDraw() {
+  const cards = FILL.cards;
+  if (!cards.some(c => c.url || c.error || c.name || c.subject)) {
+    $("#fillGrid").innerHTML = '<div class="empty">Пока пусто</div>';
+    return;
+  }
+  $("#fillGrid").innerHTML = cards.map(c => {
+    const canArt = !!(FILL.run_id && c.subject);
+    const hasArt = !!c.url;
+    const artBtn = hasArt
+      ? `<button class="btn" data-regen="${c.slot}" ${canArt ? "" : "disabled"}>Перегенерировать</button>`
+      : `<button class="btn pri" data-gen-one="${c.slot}" ${canArt ? "" : "disabled"}>Сгенерировать</button>`;
+    return `
+    <div class="card" data-fill-slot="${c.slot}" style="padding:12px;margin:0">
+      <div class="head" style="margin-bottom:8px">
+        <div style="flex:1">
+          <h3 style="margin:0">Слот ${c.slot}: ${colEsc(c.name || "…")}</h3>
+          <div class="hint">★${c.rarity} · cat ${c.category}</div>
+        </div>
+        ${artBtn}
+      </div>
+      <div class="field" style="margin-bottom:8px"><label>Subject (для модели)</label>
+        <input data-f="subject" value="${colEsc(c.subject || "")}" placeholder="old film projector"></div>
+      <div class="field" style="margin-bottom:8px"><label>Доп. к генерации</label>
+        <input data-f="extra" value="${colEsc(c.extra || "")}"
+               placeholder="сделай ярче / без фона / крупнее объект…"></div>
+      ${c.url
+        ? `<img src="${c.url}" alt="${colEsc(c.name)}" style="width:100%;border-radius:8px;border:1px solid var(--line)">`
+        : `<div class="empty" style="padding:40px 0">${c.error
+            ? `<span class="pill bad">${colEsc(c.error)}</span>`
+            : (c.subject ? "арт ещё не сгенерирован" : "ожидание…")}</div>`}
+    </div>`;
+  }).join("");
+  $$("#fillGrid [data-regen]").forEach(b => b.onclick = () => fillRegen(+b.dataset.regen));
+  $$("#fillGrid [data-gen-one]").forEach(b => b.onclick = () => fillGenOne(+b.dataset.genOne));
+  $$("#fillGrid [data-f=\"subject\"]").forEach(inp => {
+    inp.onchange = inp.onblur = () => {
+      const slot = +inp.closest("[data-fill-slot]").dataset.fillSlot;
+      FILL.cards[slot - 1].subject = inp.value.trim();
+      fillSyncNextBtn();
+    };
+  });
+  $$("#fillGrid [data-f=\"extra\"]").forEach(inp => {
+    const sync = () => {
+      const slot = +inp.closest("[data-fill-slot]").dataset.fillSlot;
+      FILL.cards[slot - 1].extra = inp.value.trim();
+    };
+    inp.oninput = sync;
+    inp.onchange = sync;
+    inp.onblur = sync;
+  });
+  fillSyncNextBtn();
+}
+
+function fillSyncNextBtn() {
+  const btn = $("#fillNextOne");
+  if (!btn) return;
+  const next = FILL.cards.find(c => c.subject && !c.url && !c.error);
+  btn.disabled = !(FILL.run_id && next);
+}
+
+function fillApplyPlan(d) {
+  FILL.run_id = d.run_id;
+  FILL.palette = d.palette || [];
+  FILL.concept = d.concept || "";
+  FILL.angle = d.angle || "";
+  FILL.active = d.active != null ? +d.active : (FILL.active || 0);
+  if (d.variants) FILL.variants = d.variants;
+  if (d.cost_usd != null) FILL.cost_usd = +d.cost_usd || 0;
+  $("#fillConceptPill").textContent = d.concept || "";
+  FILL.cards = Array.from({length: 10}, (_, i) => {
+    const c = (d.cards || [])[i] || {};
+    return {
+      slot: i + 1,
+      name: c.name || "",
+      subject: c.subject || "",
+      category: c.category || "1",
+      rarity: c.rarity || 1,
+      url: c.url || null,
+      file: c.file || null,
+      error: c.error || null,
+      extra: c.extra || "",
+    };
+  });
+  fillDrawVariants();
+  fillDraw();
+  $("#fillToAssemble").disabled = !FILL.cards.some(c => c.url);
+  fillSyncNextBtn();
+}
+
+async function loadFill() {
+  fillFillPresets();
+  fillDraw();
+}
+
+async function fillSuggest(kind) {
+  const title = $("#fillTitle").value.trim();
+  if (!title) return toast("Сначала название коллекции", "bad");
+  fillFillPresets();
+  const presetId = $("#fillPreset").value;
+  if (!presetId) return toast("Выбери пресет моделей", "bad");
+
+  const isDesc = kind === "description";
+  const btn = $(isDesc ? "#fillDescDice" : "#fillArtExtraDice");
+  const field = $(isDesc ? "#fillDesc" : "#fillArtExtra");
+  if (btn) btn.disabled = true;
+  fillLog(`🎲 ${isDesc ? "описание" : "доп. к арту"}…`, "dim");
+  try {
+    const d = await api("/api/collection/fill/suggest", {
+      method: "POST",
+      body: {
+        kind,
+        title,
+        description: $("#fillDesc").value,
+        hint: field?.value || "",
+        preset_id: presetId,
+      },
+    });
+    if (field) field.value = d.text || "";
+    fillLog(
+      `🎲 ${isDesc ? "описание" : "доп. к арту"} готово` +
+        (d.cost_usd ? ` · ${formatCost(d.cost_usd)}` : ""),
+      "ok",
+    );
+    toastCost(isDesc ? "Описание" : "Доп. к арту", d.cost_usd);
+  } catch (e) {
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+  }
+  if (btn) btn.disabled = false;
+}
+
+$("#fillDescDice").onclick = () => fillSuggest("description");
+$("#fillArtExtraDice").onclick = () => fillSuggest("art_extra");
+
+function fillFillPresets() {
+  const sel = $("#fillPreset");
+  if (!sel) return;
+  const cur = sel.value;
+  const presets = (CFG && CFG.presets) || [];
+  if (!presets.length) {
+    sel.innerHTML = '<option value="">нет пресетов — открой Модели</option>';
+    const note = $("#fillPresetNote");
+    if (note) note.textContent = "";
+    return;
+  }
+  sel.innerHTML = presets.map(p => {
+    const price = p.cost_fill_usd != null
+      ? ` · ~$${Number(p.cost_fill_usd).toFixed(2)}/запрос`
+      : "";
+    return `<option value="${p.id}">${p.name}${price}</option>`;
+  }).join("");
+  const def = (CFG && CFG.default_preset) || "budget";
+  if ([...sel.options].some(o => o.value === cur) && cur) sel.value = cur;
+  else if ([...sel.options].some(o => o.value === def)) sel.value = def;
+  else sel.selectedIndex = 0;
+  const syncNote = () => {
+    const p = presets.find(x => x.id === sel.value);
+    const note = $("#fillPresetNote");
+    if (!note) return;
+    note.textContent = p?.note
+      || "Роли: brief → concept → render";
+    // Для LoRA сразу подставляем жёсткий style-extra, если поле пустое.
+    const artExtra = $("#fillArtExtra");
+    if (artExtra && sel.value === "lora" && !(artExtra.value || "").trim()) {
+      artExtra.value =
+        "plrxcard style: stylized 3D game card icon, glossy materials, " +
+        "single centered object, no hands, no people, no full scene, " +
+        "plain simple background, not a photo";
+    }
+  };
+  sel.onchange = syncNote;
+  syncNote();
+}
+
+function fillUpsertCard(card) {
+  const i = (card.slot || 1) - 1;
+  if (i < 0 || i > 9) return;
+  const prev = FILL.cards[i] || {};
+  FILL.cards[i] = {
+    ...prev,
+    ...card,
+    extra: card.extra != null ? card.extra : (prev.extra || ""),
+  };
+  fillDraw();
+}
+
+$("#fillGo").onclick = async () => {
+  const title = $("#fillTitle").value.trim();
+  if (!title) return toast("Задай название коллекции", "bad");
+  fillFillPresets();
+  const presetId = $("#fillPreset").value;
+  if (!presetId) return toast("Выбери пресет моделей", "bad");
+  $("#fillGo").disabled = true;
+  $("#fillToAssemble").disabled = true;
+  FILL.run_id = null;
+  FILL.cost_usd = 0;
+  FILL.variants = [];
+  FILL.active = 0;
+  FILL.cards = Array.from({length: 10}, (_, i) => ({
+    slot: i + 1, name: "", subject: "", category: "1", rarity: 1,
+    url: null, file: null, error: null, extra: "",
+  }));
+  fillDrawVariants();
+  fillDraw();
+  const nVar = Math.max(3, Math.min(5, +$("#fillVariantsN").value || 3));
+  $("#fillLog").dataset.clean = "0";
+  fillLog(`Запуск наполнения · ${nVar} вариантов · пресет ${presetId}`);
+  $("#fillStatus").textContent = "работаю…";
+
+  try {
+    const res = await fetch("/api/collection/fill", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        title,
+        description: $("#fillDesc").value,
+        art_extra: $("#fillArtExtra").value,
+        preset_id: presetId,
+        concurrency: +$("#fillConc").value || 3,
+        n_variants: nVar,
+        variant_index: 0,
+      }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      let detail = d.detail;
+      if (Array.isArray(detail))
+        detail = detail.map(x => x.msg || JSON.stringify(x)).join("; ");
+      if (res.status === 404)
+        throw new Error((detail || "Not Found") +
+          " — перезапусти OfferForge (run.bat), API наполнения не подключено");
+      throw new Error(detail || `HTTP ${res.status}`);
+    }
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const {value, done} = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, {stream: true});
+      const parts = buf.split("\n\n");
+      buf = parts.pop() || "";
+      for (const chunk of parts) {
+        const line = chunk.split("\n").find(l => l.startsWith("data: "));
+        if (!line) continue;
+        let ev;
+        try { ev = JSON.parse(line.slice(6)); } catch { continue; }
+        if (ev.kind === "status") fillLog(ev.message, "dim");
+        else if (ev.kind === "variants" || ev.kind === "plan") {
+          FILL.run_id = ev.run_id;
+          FILL.palette = ev.palette || FILL.palette;
+          FILL.concept = ev.concept || FILL.concept;
+          FILL.angle = ev.angle || FILL.angle || "";
+          if (ev.active != null) FILL.active = +ev.active;
+          if (ev.variants) FILL.variants = ev.variants;
+          $("#fillConceptPill").textContent = FILL.concept || "";
+          fillDrawVariants();
+          if (ev.kind === "plan" && ev.cost_usd) FILL.cost_usd += +ev.cost_usd || 0;
+          if (ev.kind === "plan") {
+            const nv = (ev.variants || FILL.variants || []).length;
+            fillLog(
+              `План: ${nv || "?"} вариантов` +
+                (ev.angle ? ` · ${ev.angle}` : "") +
+                (ev.concept ? ` — ${ev.concept}` : "") +
+                (ev.cost_usd ? ` · ${formatCost(ev.cost_usd)}` : ""),
+              "ok",
+            );
+            if (ev.cost_usd) toastCost(`Концепты · ${nv || "?"} вар.`, ev.cost_usd);
+          }
+        } else if (ev.kind === "card") {
+          fillUpsertCard(ev);
+          if (ev.cost_usd) FILL.cost_usd += +ev.cost_usd || 0;
+          fillLog(
+            `Слот ${ev.slot}: ${ev.name}` +
+              (ev.cost_usd ? ` · ${formatCost(ev.cost_usd)}` : ""),
+            "ok",
+          );
+        } else if (ev.kind === "card_error") {
+          fillUpsertCard({slot: ev.slot, error: ev.message});
+          fillLog(`Слот ${ev.slot}: ${ev.message}`, "bad");
+        } else if (ev.kind === "done") {
+          FILL.run_id = ev.run_id;
+          FILL.palette = ev.palette || FILL.palette;
+          FILL.concept = ev.concept || FILL.concept;
+          FILL.angle = ev.angle || FILL.angle || "";
+          if (ev.active != null) FILL.active = +ev.active;
+          if (ev.variants) FILL.variants = ev.variants;
+          if (ev.cost_usd != null) FILL.cost_usd = +ev.cost_usd || FILL.cost_usd;
+          fillDrawVariants();
+          (ev.cards || []).forEach(c => {
+            const prev = FILL.cards[(c.slot || 1) - 1];
+            if (prev?.file && /_v\d+\.png$/i.test(prev.file) && prev.file !== c.file) return;
+            fillUpsertCard(c);
+          });
+          const totalCost = formatCost(FILL.cost_usd || ev.cost_usd);
+          $("#fillStatus").innerHTML =
+            `<span class="pill ok">готово</span> ${ev.ok}/${ev.total} · ${ev.run_id}` +
+            (totalCost ? ` · <span class="pill warn">${totalCost}</span>` : "");
+          $("#fillToAssemble").disabled = !(ev.ok > 0);
+          fillLog(`Готово ${ev.ok}/${ev.total}` + (totalCost ? ` · итого ${totalCost}` : ""), "ok");
+          toastCost(`Наполнение · ${ev.ok}/${ev.total}`, FILL.cost_usd || ev.cost_usd);
+        } else if (ev.kind === "fatal") {
+          fillLog(ev.message, "bad");
+          $("#fillStatus").innerHTML = `<span class="pill bad">${ev.message}</span>`;
+          toast(ev.message, "bad");
+        }
+      }
+    }
+  } catch (e) {
+    fillLog(e.message, "bad");
+    $("#fillStatus").innerHTML = `<span class="pill bad">${e.message}</span>`;
+    toast(e.message, "bad");
+  }
+  $("#fillGo").disabled = false;
+};
+
+$("#fillPlan").onclick = async () => {
+  const title = $("#fillTitle").value.trim();
+  if (!title) return toast("Задай название коллекции", "bad");
+  fillFillPresets();
+  const presetId = $("#fillPreset").value;
+  if (!presetId) return toast("Выбери пресет моделей", "bad");
+  $("#fillPlan").disabled = true;
+  $("#fillGo").disabled = true;
+  $("#fillNextOne").disabled = true;
+  $("#fillToAssemble").disabled = true;
+  $("#fillLog").dataset.clean = "0";
+  const nVar = Math.max(3, Math.min(5, +$("#fillVariantsN").value || 3));
+  fillLog(`Придумываю ${nVar} варианта × 10 объектов · пресет ${presetId}`);
+  $("#fillStatus").textContent = "план…";
+  try {
+    const d = await api("/api/collection/fill/plan", {
+      method: "POST",
+      body: {
+        title,
+        description: $("#fillDesc").value,
+        preset_id: presetId,
+        n_variants: nVar,
+      },
+    });
+    fillApplyPlan(d);
+    const cost = formatCost(d.cost_usd);
+    const nv = (d.variants || []).length;
+    $("#fillStatus").innerHTML =
+      `<span class="pill ok">план · ${nv} вариантов</span> ${d.run_id}` +
+      (cost ? ` · <span class="pill warn">${cost}</span>` : "") +
+      " · выбери вариант и генерируй арт";
+    fillLog(
+      `План: ${nv} вариантов` +
+      (d.angle ? ` · активный: ${d.angle}` : "") +
+      (d.concept ? ` — ${d.concept}` : "") +
+      (cost ? ` · ${cost}` : ""),
+      "ok",
+    );
+    toastCost(`План · ${nv} вариантов`, d.cost_usd);
+  } catch (e) {
+    fillLog(e.message, "bad");
+    $("#fillStatus").innerHTML = `<span class="pill bad">${e.message}</span>`;
+    toast(e.message, "bad");
+  }
+  $("#fillPlan").disabled = false;
+  $("#fillGo").disabled = false;
+  fillSyncNextBtn();
+};
+
+async function fillGenOne(slot) {
+  const card = FILL.cards[slot - 1];
+  if (!FILL.run_id) return toast("Сначала придумай объекты или создай набор", "bad");
+  const row = $(`#fillGrid [data-fill-slot="${slot}"]`);
+  const subEl = row?.querySelector('[data-f="subject"]');
+  const extEl = row?.querySelector('[data-f="extra"]');
+  if (subEl) card.subject = (subEl.value || "").trim() || card.subject;
+  const extraLive = extEl ? (extEl.value || "").trim() : (card.extra || "");
+  card.extra = extraLive;
+  if (!card.subject) return toast("Задай subject для слота", "bad");
+
+  const btnOne = $(`#fillGrid [data-gen-one="${slot}"]`);
+  const btnNext = $("#fillNextOne");
+  if (btnOne) btnOne.disabled = true;
+  if (btnNext) btnNext.disabled = true;
+  fillLog(
+    `Генерация слота ${slot}` +
+      (extraLive ? ` · доп: ${extraLive.slice(0, 80)}` : ""),
+    "dim",
+  );
+  $("#fillStatus").textContent = `рисую слот ${slot}…`;
+  try {
+    const d = await api("/api/collection/fill/one", {
+      method: "POST",
+      body: {
+        run_id: FILL.run_id,
+        slot,
+        preset_id: $("#fillPreset").value || null,
+        art_extra: [$("#fillArtExtra").value, extraLive].filter(Boolean).join("\n"),
+        subject: card.subject,
+        name: card.name,
+        category: card.category,
+        rarity: card.rarity,
+      },
+    });
+    fillUpsertCard({...d, extra: extraLive, subject: card.subject});
+    if (d.cost_usd) FILL.cost_usd = (FILL.cost_usd || 0) + (+d.cost_usd || 0);
+    fillLog(
+      `Слот ${slot}: ${d.name || card.name}` +
+        (d.cost_usd ? ` · ${formatCost(d.cost_usd)}` : ""),
+      "ok",
+    );
+    toastCost(`Слот ${slot}`, d.cost_usd);
+    const ok = FILL.cards.filter(c => c.url).length;
+    $("#fillStatus").innerHTML =
+      `<span class="pill ok">${ok}/10 с артом</span> ${FILL.run_id}` +
+      (formatCost(FILL.cost_usd) ? ` · <span class="pill warn">${formatCost(FILL.cost_usd)}</span>` : "");
+    $("#fillToAssemble").disabled = ok === 0;
+  } catch (e) {
+    fillUpsertCard({slot, error: e.message});
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+  }
+  fillSyncNextBtn();
+}
+
+$("#fillNextOne").onclick = () => {
+  const next = FILL.cards.find(c => c.subject && !c.url);
+  if (!next) return toast("Все слоты с subject уже сгенерированы", "ok");
+  fillGenOne(next.slot);
+};
+
+async function fillRegen(slot) {
+  const card = FILL.cards[slot - 1];
+  if (!FILL.run_id || !card?.subject) return toast("Сначала создай набор", "bad");
+  const row = $(`#fillGrid [data-fill-slot="${slot}"]`);
+  const subEl = row?.querySelector('[data-f="subject"]');
+  const extEl = row?.querySelector('[data-f="extra"]');
+  // Берём значение прямо из поля — без blur onchange мог не сработать.
+  if (subEl) card.subject = (subEl.value || "").trim() || card.subject;
+  const extraLive = extEl ? (extEl.value || "").trim() : (card.extra || "");
+  card.extra = extraLive;
+  if (!card.subject) return toast("Задай subject для слота", "bad");
+  const btn = $(`#fillGrid [data-regen="${slot}"]`);
+  if (btn) btn.disabled = true;
+  fillLog(
+    `Перегенерация слота ${slot}` +
+      (extraLive ? ` · доп: ${extraLive.slice(0, 80)}` : " · без доп. пожеланий"),
+    "dim",
+  );
+  try {
+    const d = await api("/api/collection/fill/regenerate", {
+      method: "POST",
+      body: {
+        title: $("#fillTitle").value.trim(),
+        description: $("#fillDesc").value,
+        preset_id: $("#fillPreset").value || null,
+        run_id: FILL.run_id,
+        slot,
+        subject: card.subject,
+        name: card.name,
+        category: card.category,
+        rarity: card.rarity,
+        palette: FILL.palette,
+        extra: extraLive,
+      },
+    });
+    fillUpsertCard({...d, extra: extraLive, subject: card.subject});
+    if (d.cost_usd) FILL.cost_usd = (FILL.cost_usd || 0) + (+d.cost_usd || 0);
+    const used = (d.prompt || "").includes(extraLive) || !extraLive;
+    fillLog(
+      (extraLive
+        ? (used
+          ? `Слот ${slot} обновлён, пожелания учтены в промпте`
+          : `Слот ${slot} обновлён — проверь промпт: пожелания могли не попасть`)
+        : `Слот ${slot} обновлён`) +
+        (d.cost_usd ? ` · ${formatCost(d.cost_usd)}` : ""),
+      "ok",
+    );
+    toastCost(`Слот ${slot} перегенерирован`, d.cost_usd);
+    $("#fillToAssemble").disabled = false;
+  } catch (e) {
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+  }
+  if (btn) btn.disabled = false;
+}
+
+$("#fillToAssemble").onclick = async () => {
+  const title = $("#fillTitle").value.trim();
+  if (title) $("#colTitle").value = title;
+  $("#fillToAssemble").disabled = true;
+  fillLog("Переношу актуальные арты в сборку…", "dim");
+  try {
+    for (let i = 0; i < FILL.cards.length; i++) {
+      const c = FILL.cards[i];
+      if (!c.name && !c.file && !c.url) continue;
+      COL.slots[i].name = c.name || `Item ${i + 1}`;
+      COL.slots[i].rarity = c.rarity || 1;
+      COL.slots[i].imageRel = null;
+      COL.slots[i].file = null;
+      COL.slots[i].fileName = "";
+      COL.slots[i].previewUrl = null;
+      // Тянем байты с cache-bust — иначе уезжает первая версия из кеша/пути.
+      const src = c.file
+        ? `/runs/${c.file}?t=${c.version || Date.now()}`
+        : (c.url || null);
+      if (!src) continue;
+      const r = await fetch(src, {cache: "no-store"});
+      if (!r.ok) throw new Error(`слот ${i + 1}: не скачать арт (${r.status})`);
+      const blob = await r.blob();
+      const fname = (c.file || `slot_${i + 1}.png`).split("/").pop();
+      COL.slots[i].file = new File([blob], fname, {type: blob.type || "image/png"});
+      COL.slots[i].fileName = fname;
+      COL.slots[i].previewUrl = URL.createObjectURL(blob);
+    }
+    show("collection");
+    toast("Перенесены актуальные версии арта", "ok");
+  } catch (e) {
+    toast(e.message, "bad");
+    fillLog(e.message, "bad");
+  }
+  $("#fillToAssemble").disabled = false;
+};
+
+/* ================= КОЛЛЕКЦИЯ ================= */
+const COL = {
+  slots: Array.from({length: 10}, (_, i) => ({
+    name: `Item ${i + 1}`,
+    rarity: 1,
+    enchant_on: false,
+    enchant_power: 2,
+    file: null,
+    fileName: "",
+    imageRel: null,
+    previewUrl: null,
+    nameRu: "",
+    nameEn: "",
+  })),
+};
+
+function colEsc(s) {
+  return String(s ?? "").replace(/&/g,"&amp;").replace(/"/g,"&quot;")
+    .replace(/</g,"&lt;");
+}
+
+function colSlotRow(s, i) {
+  const stars = [1,2,3,4,5].map(n =>
+    `<option value="${n}"${s.rarity===n?" selected":""}>${n}</option>`).join("");
+  const preview = s.previewUrl
+    || (s.imageRel ? `/runs/${s.imageRel}?t=${Date.now()}` : "");
+  return `<div class="card" data-slot="${i}" style="padding:12px;margin-bottom:8px">
+    <div class="row">
+      <div class="field" style="flex:0 0 72px"><label>Слот</label>
+        <input value="${i + 1}" disabled style="opacity:.7"></div>
+      <div class="field" style="flex:1"><label>Название слота</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input data-f="name" value="${colEsc(s.name)}" placeholder="Хлопушка / Clapperboard" style="flex:1">
+          <button type="button" class="btn" data-namegen="${i}" title="Случайное имя по арту (ru / en)"
+            style="font-size:18px;line-height:1;padding:6px 10px;min-width:40px">🎲</button>
+        </div>
+        <div class="hint" data-f="name-hint">${
+          (s.nameRu || s.nameEn)
+            ? `ru: ${colEsc(s.nameRu || "—")} · en: ${colEsc(s.nameEn || "—")}`
+            : "🎲 — имя по картинке слота (ru / en)"
+        }</div></div>
+      <div class="field" style="flex:0 0 110px"><label>Звёзды</label>
+        <select data-f="rarity">${stars}</select></div>
+    </div>
+    <div class="row">
+      <div class="fit" style="padding-bottom:14px;gap:14px;display:flex;align-items:center">
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;
+                      font-size:13px;color:var(--ink);white-space:nowrap">
+          <input type="checkbox" data-f="enchant_on" style="width:auto"
+                 ${s.enchant_on ? "checked" : ""}> Заточка</label>
+      </div>
+      <div class="field" data-enchant-wrap style="flex:0 0 120px;
+           ${s.enchant_on ? "" : "display:none"}"><label>Сила заточки</label>
+        <input data-f="enchant_power" type="number" min="1" max="99"
+               value="${s.enchant_power}"></div>
+      <div class="field" style="flex:1"><label>Картинка слота</label>
+        <input type="file" data-f="image" accept="image/*">
+        <div class="hint" data-f="image-note">${
+          s.fileName
+            ? `выбрано: ${colEsc(s.fileName)}`
+            : (s.imageRel
+              ? `из наполнения: ${colEsc(s.imageRel)}`
+              : "без файла — заглушка из Icons")
+        }</div>
+        ${preview
+          ? `<img src="${preview}" alt="" style="max-height:72px;margin-top:6px;border-radius:6px;border:1px solid var(--line)">`
+          : ""}</div>
+    </div>
+  </div>`;
+}
+
+function colCollect() {
+  $$("#colSlotList .card[data-slot]").forEach(card => {
+    const i = +card.dataset.slot;
+    const s = COL.slots[i];
+    s.name = (card.querySelector('[data-f="name"]').value || "").trim() || `Item ${i + 1}`;
+    s.rarity = Math.max(1, Math.min(5, +card.querySelector('[data-f="rarity"]').value || 1));
+    s.enchant_on = card.querySelector('[data-f="enchant_on"]').checked;
+    s.enchant_power = Math.max(1, Math.min(99,
+      +card.querySelector('[data-f="enchant_power"]').value || 1));
+    const f = card.querySelector('[data-f="image"]').files?.[0];
+    if (f) { s.file = f; s.fileName = f.name; s.imageRel = null; }
+  });
+  return COL.slots;
+}
+
+function colDraw() {
+  $("#colSlotList").innerHTML = COL.slots.map(colSlotRow).join("");
+  $$("#colSlotList [data-f=\"enchant_on\"]").forEach(cb => {
+    cb.onchange = () => {
+      const card = cb.closest(".card");
+      const wrap = card.querySelector("[data-enchant-wrap]");
+      wrap.style.display = cb.checked ? "" : "none";
+    };
+  });
+  $$("#colSlotList [data-f=\"image\"]").forEach(inp => {
+    inp.onchange = () => {
+      const card = inp.closest(".card");
+      const i = +card.dataset.slot;
+      const f = inp.files?.[0];
+      if (!f) return;
+      COL.slots[i].file = f;
+      COL.slots[i].fileName = f.name;
+      COL.slots[i].imageRel = null;
+      if (COL.slots[i].previewUrl) URL.revokeObjectURL(COL.slots[i].previewUrl);
+      COL.slots[i].previewUrl = URL.createObjectURL(f);
+      card.querySelector('[data-f="image-note"]').textContent = `выбрано: ${f.name}`;
+      const img = card.querySelector("img");
+      if (img) img.src = COL.slots[i].previewUrl;
+      else colDraw();
+    };
+  });
+  $$("#colSlotList [data-namegen]").forEach(b => {
+    b.onclick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      await colGenName(+b.dataset.namegen, b);
+    };
+  });
+}
+
+async function colGenName(i, btn) {
+  colCollect();
+  const s = COL.slots[i];
+  if (!s.file && !s.imageRel) return toast("Сначала нужна картинка слота", "bad");
+  if (btn) btn.disabled = true;
+  try {
+    const fd = new FormData();
+    if (s.file) fd.append("image", s.file, s.fileName || `slot_${i + 1}.png`);
+    else fd.append("image_rel", s.imageRel);
+    if (CFG?.default_preset) fd.append("preset_id", CFG.default_preset);
+    else if ($("#fillPreset")?.value) fd.append("preset_id", $("#fillPreset").value);
+    const r = await fetch("/api/collection/name-from-art", {method:"POST", body:fd});
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      let detail = d.detail;
+      if (Array.isArray(detail))
+        detail = detail.map(x => x.msg || JSON.stringify(x)).join("; ");
+      throw new Error(detail || `HTTP ${r.status}`);
+    }
+    s.nameRu = d.name_ru || "";
+    s.nameEn = d.name_en || "";
+    s.name = d.name || s.name;
+    const card = $(`#colSlotList .card[data-slot="${i}"]`);
+    if (card) {
+      card.querySelector('[data-f="name"]').value = s.name;
+      const hint = card.querySelector('[data-f="name-hint"]');
+      if (hint) hint.textContent = `ru: ${s.nameRu || "—"} · en: ${s.nameEn || "—"}`;
+    }
+    toastCost(`🎲 ${s.name}`, d.cost_usd);
+  } catch (e) {
+    toast(e.message, "bad");
+  }
+  if (btn) btn.disabled = false;
+}
+
+async function loadCollection() {
+  try {
+    const d = await api("/api/collection/defaults");
+    const ok = [
+      d.builder_ok && "OfferBuilder",
+      d.cutted_ok && "Cutted",
+      d.reference_ok && "референс",
+      d.icons_ok && "Icons",
+    ].filter(Boolean);
+    const miss = [
+      !d.builder_ok && "OfferBuilder",
+      !d.cutted_ok && "Cutted",
+      !d.reference_ok && "референс",
+      !d.icons_ok && "Icons",
+    ].filter(Boolean);
+    $("#colPaths").innerHTML = miss.length
+      ? `<span class="pill bad">нет: ${miss.join(", ")}</span>`
+      : `<span class="pill ok">готово</span> ${ok.join(" · ")} · футер: заглушка из фона`;
+  } catch (e) {
+    $("#colPaths").innerHTML = `<span class="pill bad">${e.message}</span>`;
+  }
+  colDraw();
+}
+
+$("#colGo").onclick = async () => {
+  colCollect();
+  const title = $("#colTitle").value.trim();
+  if (!title) return toast("Задай название коллекции", "bad");
+
+  const fd = new FormData();
+  fd.append("title", title);
+  fd.append("slots", JSON.stringify(COL.slots.map(s => ({
+    name: s.name, rarity: s.rarity,
+    enchant_on: s.enchant_on, enchant_power: s.enchant_power,
+    image_rel: s.file ? null : (s.imageRel || null),
+  }))));
+  COL.slots.forEach((s, i) => {
+    if (s.file) fd.append(`image_${i}`, s.file, s.fileName || `slot_${i + 1}.png`);
+  });
+
+  $("#colGo").disabled = true;
+  $("#colStatus").textContent = "собираю…";
+  try {
+    const r = await fetch("/api/collection/build", {method:"POST", body:fd});
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.detail || `HTTP ${r.status}`);
+    $("#colStatus").innerHTML =
+      `<span class="pill ok">готово</span> ${d.size?.[0]}×${d.size?.[1]}`;
+    $("#colResult").innerHTML =
+      `<div><img src="/runs/${d.file}?t=${Date.now()}" alt="${d.title}">
+        <div class="hint">${d.title} · ${d.run_id}</div></div>`;
+    toast("Коллекция собрана", "ok");
+  } catch (e) {
+    $("#colStatus").innerHTML = `<span class="pill bad">ошибка</span> ${e.message}`;
+    toast(e.message, "bad");
+  }
+  $("#colGo").disabled = false;
+};
+
+
+
+/* ================= СТАРТ ================= */
+async function init() {
+  CFG = await api("/api/config");
+  const ready = Object.entries(CFG.providers).filter(([id])=>id!=="mock")
+    .filter(([,v])=>v.configured).map(([id])=>id);
+  $("#navFoot").innerHTML = CFG.offline
+    ? '<span class="pill warn">оффлайн (mock)</span>'
+    : (ready.length ? ready.map(id=>`<span class="pill ok">${id}</span>`).join(" ")
+                    : '<span class="pill bad">нет ключей</span><br><br>Открой «Провайдеры» и впиши ключ.');
+  fillFillPresets();
+  show("fill");
+  await refreshBilling(true);
+  if (BILLING_TIMER) clearInterval(BILLING_TIMER);
+  BILLING_TIMER = setInterval(() => refreshBilling(true), 60000);
+  const btn = $("#navBillingRefresh");
+  if (btn) btn.onclick = () => refreshBilling(false);
+}
+
+/* ================= LoRA TRAINER ================= */
+let LORA_POLL = null;
+let LORA_SEEN_LOGS = new Set();
+let LORA_JOB_STARTED = null;
+
+function loraLog(text, cls) {
+  const box = $("#loraLog");
+  if (!box) return;
+  if (box.dataset.clean !== "1") { box.innerHTML = ""; box.dataset.clean = "1"; }
+  const d = document.createElement("div");
+  if (cls) d.className = cls;
+  d.textContent = new Date().toLocaleTimeString() + "  " + text;
+  box.appendChild(d); box.scrollTop = box.scrollHeight;
+}
+
+function loraExplainStatus(st) {
+  if (st === "IN_QUEUE") return "в очереди fal — ждём свободный GPU";
+  if (st === "IN_PROGRESS") return "обучается на fal (распаковка → скачивание весов → training). 159 картинок / 1000–1200 steps обычно 10–25 мин";
+  if (st === "COMPLETED") return "готово — URL весов ниже, жми «Включить fal_lora»";
+  if (st === "FAILED" || st === "ERROR") return "упало на стороне fal — смотри лог";
+  return "";
+}
+
+async function loadLora() {
+  try {
+    const d = await api("/api/lora/status");
+    $("#loraKeyStatus").innerHTML = d.has_key
+      ? `<span class="pill ok">ключ есть</span> ${d.key_mask}`
+      : `<span class="pill bad">ключ не сохранён</span>`;
+    const ds = d.dataset || {};
+    $("#loraDatasetStats").innerHTML = `
+      <div><span>${ds.images ?? "—"}</span><small>картинок в dataset</small></div>
+      <div><span>${ds.zip_mb ?? "—"}</span><small>zip, МБ</small></div>
+      <div><span>${ds.icons_count ?? "—"}</span><small>файлов в Icons</small></div>`;
+    $("#loraDatasetHint").textContent = ds.ready
+      ? `Готово · trigger ${d.trigger}`
+      : "Датасет ещё не собран — нажми «Собрать / обновить датасет»";
+    const fl = d.fal_lora || {};
+    $("#loraApplyHint").innerHTML = fl.configured
+      ? `<span class="pill ${fl.enabled ? "ok" : "warn"}">${fl.enabled ? "включён" : "выключен"}</span>
+         <span class="mono">${(fl.lora_path || "").slice(0, 72)}</span>`
+      : "После обучения нажми «Включить fal_lora».";
+    if (d.last_lora_url && !$("#loraUrl").value)
+      $("#loraUrl").value = d.last_lora_url;
+    if (d.active_request_id)
+      $("#loraJobStatus").textContent = `Активный job: ${d.active_request_id}`;
+    if (d.trigger) $("#loraTrigger").value = d.trigger;
+  } catch (e) {
+    toast(e.message, "bad");
+  }
+}
+
+$("#loraSaveKey").onclick = async () => {
+  try {
+    const d = await api("/api/lora/key", {method:"POST", body:{api_key: $("#loraKey").value.trim()}});
+    $("#loraKey").value = "";
+    toast(`FAL_KEY сохранён · ${d.key_mask}`, "ok");
+    loadLora();
+  } catch (e) { toast(e.message, "bad"); }
+};
+
+$("#loraRebuild").onclick = async () => {
+  $("#loraRebuild").disabled = true;
+  loraLog("Собираю датасет из Icons…", "dim");
+  try {
+    const d = await api("/api/lora/rebuild-dataset", {method:"POST", body:{}});
+    loraLog(`Готово: ${d.dataset.images} картинок, zip ${d.dataset.zip_mb} МБ`, "ok");
+    toast("Датасет обновлён", "ok");
+    loadLora();
+  } catch (e) {
+    loraLog(e.message, "bad");
+    toast(e.message, "bad");
+  }
+  $("#loraRebuild").disabled = false;
+};
+
+$("#loraTrain").onclick = async () => {
+  $("#loraTrain").disabled = true;
+  LORA_SEEN_LOGS = new Set();
+  LORA_JOB_STARTED = Date.now();
+  $("#loraLog").dataset.clean = "0";
+  loraLog("Стартую обучение (zip с CDN переиспользуется, если уже был)…", "dim");
+  try {
+    const d = await api("/api/lora/train", {
+      method:"POST",
+      body:{
+        steps: +$("#loraSteps").value || 1100,
+        trigger_word: $("#loraTrigger").value.trim() || "plrxcard",
+        rebuild_dataset: false,
+        reuse_zip: true,
+      },
+    });
+    loraLog(d.message || `job ${d.request_id}`, "ok");
+    $("#loraJobStatus").innerHTML =
+      `<span class="pill warn">в очереди</span> ${d.request_id}<div class="hint">${loraExplainStatus("IN_QUEUE")}</div>`;
+    toast("Обучение запущено — не жми Start повторно", "ok");
+    if (LORA_POLL) clearInterval(LORA_POLL);
+    LORA_POLL = setInterval(() => refreshLoraJob(true), 20000);
+    refreshLoraJob(true);
+  } catch (e) {
+    loraLog(e.message, "bad");
+    toast(e.message, "bad");
+  }
+  $("#loraTrain").disabled = false;
+};
+
+async function refreshLoraJob(silent) {
+  try {
+    const d = await api("/api/lora/job");
+    const st = d.status || "?";
+    const pill = st === "COMPLETED" ? "ok" : (st === "FAILED" || st === "ERROR" ? "bad" : "warn");
+    const elapsed = LORA_JOB_STARTED
+      ? Math.round((Date.now() - LORA_JOB_STARTED) / 1000)
+      : null;
+    const elapsedTxt = elapsed != null
+      ? ` · ${elapsed < 60 ? elapsed + "с" : Math.floor(elapsed / 60) + "м " + (elapsed % 60) + "с"}`
+      : "";
+    $("#loraJobStatus").innerHTML =
+      `<span class="pill ${pill}">${st}</span> ${d.request_id}${elapsedTxt}` +
+      (d.queue_position != null ? ` · очередь ${d.queue_position}` : "") +
+      `<div class="hint">${loraExplainStatus(st)}</div>`;
+
+    // Только новые строки — иначе каждые 15с кажется, что процесс «начинается заново».
+    let fresh = 0;
+    for (const m of (d.logs || [])) {
+      const key = String(m);
+      if (LORA_SEEN_LOGS.has(key)) continue;
+      LORA_SEEN_LOGS.add(key);
+      loraLog(key, "dim");
+      fresh++;
+    }
+    if (!fresh && (st === "IN_PROGRESS" || st === "IN_QUEUE") && !silent) {
+      loraLog(`всё ещё ${st} — fal молчит в логах, это нормально во время training`, "dim");
+    }
+
+    if (d.lora_url) {
+      $("#loraUrl").value = d.lora_url;
+      loraLog(`Веса готовы: ${d.lora_url}`, "ok");
+      if (LORA_POLL) { clearInterval(LORA_POLL); LORA_POLL = null; }
+      toast("LoRA обучена — можно подключать", "ok");
+    }
+    if (d.error) {
+      loraLog(String(d.error), "bad");
+      if (LORA_POLL) { clearInterval(LORA_POLL); LORA_POLL = null; }
+    }
+  } catch (e) {
+    if (!silent) toast(e.message, "bad");
+  }
+}
+$("#loraRefresh").onclick = () => refreshLoraJob(false);
+
+$("#loraApply").onclick = async () => {
+  try {
+    const d = await api("/api/lora/apply", {
+      method:"POST",
+      body:{ lora_url: $("#loraUrl").value.trim(), scale: 1.0, enable: true },
+    });
+    toast(d.message || "Подключено", "ok");
+    loadLora();
+  } catch (e) { toast(e.message, "bad"); }
+};
+
+/* ================= ПРОВАЙДЕРЫ ================= */
+async function loadProviders() {
+  const d = await api("/api/settings/providers");
+  $("#npKind").innerHTML = d.kinds.map(k=>`<option value="${k.id}">${k.name}</option>`).join("");
+
+  $("#providerList").innerHTML = d.providers.map(p => `
+    <div class="card" data-pid="${p.id}">
+      <div class="head">
+        <div>
+          <h3>${p.id}
+            ${p.has_key ? '<span class="pill ok">ключ есть</span>'
+                        : '<span class="pill bad">нет ключа</span>'}
+            ${p.enabled ? "" : '<span class="pill">выключен</span>'}
+            ${p.key_from_env ? '<span class="pill warn">из .env</span>' : ""}
+          </h3>
+          <p class="note">${p.kind} · ${p.capabilities.join(", ")}</p>
+        </div>
+        <div class="btns">
+          <button class="btn" data-act="test">Проверить</button>
+          <button class="btn danger" data-act="del">Удалить</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>API Endpoint</label>
+          <input class="mono" data-f="endpoint" value="${p.endpoint}"></div>
+        <div class="field"><label>API Key</label>
+          <input type="password" data-f="api_key"
+                 placeholder="${p.key_masked || 'не задан'}"></div>
+      </div>
+      <div class="btns">
+        <button class="btn pri" data-act="save">Сохранить</button>
+        <button class="btn" data-act="toggle">${p.enabled?"Выключить":"Включить"}</button>
+        <span class="hint" data-res style="align-self:center"></span>
+      </div>
+    </div>`).join("");
+
+  $$("#providerList .card").forEach(card => {
+    const pid = card.dataset.pid;
+    const res = card.querySelector("[data-res]");
+    const val = f => card.querySelector(`[data-f="${f}"]`).value;
+    const p = d.providers.find(x=>x.id===pid);
+
+    card.querySelector('[data-act="save"]').onclick = async () => {
+      const body = {endpoint: val("endpoint")};
+      const k = val("api_key").trim();
+      if (k) body.api_key = k;
+      try { await api(`/api/settings/providers/${pid}`, {method:"PATCH", body});
+            toast(`${pid}: сохранено`, "ok"); loadProviders(); }
+      catch(e) { toast(e.message, "bad"); }
+    };
+    card.querySelector('[data-act="toggle"]').onclick = async () => {
+      await api(`/api/settings/providers/${pid}`, {method:"PATCH", body:{enabled: !p.enabled}});
+      loadProviders();
+    };
+    card.querySelector('[data-act="del"]').onclick = async () => {
+      if (!confirm(`Удалить провайдера ${pid}?`)) return;
+      await api(`/api/settings/providers/${pid}`, {method:"DELETE"});
+      toast(`${pid} удалён`); loadProviders();
+    };
+    card.querySelector('[data-act="test"]').onclick = async (ev) => {
+      ev.target.disabled = true; res.textContent = "проверяю…";
+      try {
+        const r = await api(`/api/settings/providers/${pid}/test`, {method:"POST"});
+        res.innerHTML = r.ok
+          ? `<span class="pill ok">OK</span> ${r.message} · ${r.elapsed_ms} мс`
+          : `<span class="pill bad">ошибка</span> ${r.message}`;
+      } catch(e) { res.innerHTML = `<span class="pill bad">ошибка</span> ${e.message}`; }
+      ev.target.disabled = false;
+    };
+  });
+}
+$("#npAdd").onclick = async () => {
+  const caps = [...$("#npCaps").selectedOptions].map(o=>o.value);
+  try {
+    await api("/api/settings/providers", {method:"POST", body:{
+      id: $("#npId").value.trim(), kind: $("#npKind").value,
+      endpoint: $("#npUrl").value.trim(), api_key: $("#npKey").value.trim(),
+      capabilities: caps.length?caps:["text"] }});
+    $("#npId").value = $("#npUrl").value = $("#npKey").value = "";
+    toast("Провайдер добавлен", "ok"); loadProviders();
+  } catch(e) { toast(e.message, "bad"); }
+};
+
+/* ================= МОДЕЛИ ================= */
+async function loadVariants(presetId) {
+  const q = presetId ? `?preset_id=${presetId}` : "";
+  const d = await api("/api/settings/variants"+q);
+  VARDATA = d;
+
+  $("#mPreset").innerHTML = d.presets.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
+  $("#mPreset").value = d.preset.id;
+  $("#mPresetNote").textContent = d.presets.find(p=>p.id===d.preset.id)?.note || "";
+  $("#mPreset").onchange = () => loadVariants($("#mPreset").value);
+
+  $("#variantList").innerHTML = d.variants.map(v => {
+    const capPill = v.capability==="image" ? '<span class="pill">генерация</span>'
+                  : v.capability==="vision" ? '<span class="pill warn">нужен vision</span>' : "";
+    return `
+    <div class="card" data-v="${v.name}">
+      <div class="head">
+        <div>
+          <h3>${v.title} <span class="pill">${v.name}</span> ${capPill}</h3>
+          <p class="note">${v.doc}</p>
+        </div>
+        <button class="btn" data-act="test">Проверить</button>
+      </div>
+      <div data-rot></div>
+      <div class="btns">
+        <button class="btn" data-act="add">+ Добавить модель в ротацию</button>
+        <button class="btn pri" data-act="save">Сохранить</button>
+        <span class="hint" data-res style="align-self:center"></span>
+      </div>
+    </div>`;
+  }).join("");
+
+  d.variants.forEach(v => {
+    const card = $(`#variantList .card[data-v="${v.name}"]`);
+    const host = card.querySelector("[data-rot]");
+    const state = JSON.parse(JSON.stringify(v.rotation));
+
+    const provOpts = pid => d.providers
+      .filter(p => v.capability==="image" ? p.capabilities.includes("image")
+                 : v.capability==="vision" ? p.capabilities.includes("vision")
+                 : p.capabilities.includes("text"))
+      .map(p=>`<option value="${p.id}" ${p.id===pid?"selected":""}>${p.id}</option>`).join("")
+      || `<option value="${pid}">${pid}</option>`;
+
+    const rec = (d.recommended||{})[v.name] || [];
+
+    function draw() {
+      host.innerHTML = state.map((m,i) => `
+        <div class="rot" data-i="${i}">
+          <div class="top">
+            <span class="idx">${i===0?"основная":"фолбэк "+i}</span>
+            ${state.length>1?'<button class="btn danger" data-act="rm" style="margin-left:auto;padding:3px 9px">×</button>':""}
+          </div>
+          <div class="row">
+            <div class="field" style="flex:0 0 180px"><label>Провайдер</label>
+              <select data-f="provider_id">${provOpts(m.provider_id)}</select></div>
+            <div class="field"><label>Модель</label>
+              <input class="mono" data-f="name" value="${m.name}" list="rec-${v.name}"></div>
+            ${v.capability==="image" ? `
+              <div class="field" style="flex:0 0 130px"><label>Размер</label>
+                <input data-f="size" value="${m.size||""}" placeholder="1024x1024"></div>
+              <div class="field" style="flex:0 0 110px"><label>Референсов</label>
+                <input type="number" min="0" max="14" data-f="n_reference_images"
+                       value="${m.n_reference_images??""}"></div>`
+            : `
+              <div class="field" style="flex:0 0 150px"><label>Температура</label>
+                <input type="number" step="0.05" min="0" max="2" data-f="temperature"
+                       value="${m.temperature??""}" placeholder="0.7"></div>`}
+          </div>
+        </div>`).join("") +
+        `<datalist id="rec-${v.name}">${rec.map(r=>`<option value="${r.id||r}">`).join("")}</datalist>`;
+
+      host.querySelectorAll(".rot").forEach(row => {
+        const i = +row.dataset.i;
+        row.querySelectorAll("[data-f]").forEach(el => el.onchange = () => {
+          const f = el.dataset.f;
+          state[i][f] = el.value==="" ? undefined
+                      : (el.type==="number" ? Number(el.value) : el.value);
+        });
+        row.querySelector('[data-act="rm"]')?.addEventListener("click", () => {
+          state.splice(i,1); draw();
+        });
+      });
+    }
+    draw();
+
+    card.querySelector('[data-act="add"]').onclick = () => {
+      const base = state[state.length-1];
+      state.push({name: rec[0]?.id || rec[0] || base.name, provider_id: base.provider_id});
+      draw();
+    };
+    card.querySelector('[data-act="save"]').onclick = async () => {
+      const clean = state.map(m => Object.fromEntries(
+        Object.entries(m).filter(([,x]) => x!==undefined && x!=="" && x!==null)));
+      try {
+        await api(`/api/settings/variants/${d.preset.id}/${v.name}`,
+                  {method:"PUT", body:{rotation: clean}});
+        toast(`${v.title}: сохранено`, "ok");
+      } catch(e) { toast(e.message, "bad"); }
+    };
+    card.querySelector('[data-act="test"]').onclick = async (ev) => {
+      const res = card.querySelector("[data-res]");
+      ev.target.disabled = true; res.textContent = "проверяю…";
+      try {
+        const r = await api(`/api/settings/variants/${d.preset.id}/${v.name}/test`,
+                            {method:"POST"});
+        res.innerHTML = `<span class="pill ${r.all_ok?"ok":"bad"}">${r.summary}</span> ` +
+          r.results.map(x=>`${x.ok?"✓":"✗"} <span class="mono">${x.model}</span> ${x.elapsed_ms}мс — ${x.detail}`)
+                   .join("<br>");
+      } catch(e) { res.innerHTML = `<span class="pill bad">ошибка</span> ${e.message}`; }
+      ev.target.disabled = false;
+    };
+  });
+}
+$("#mReload").onclick = () => loadVariants($("#mPreset").value);
+$("#mSaveAs").onclick = async () => {
+  const name = prompt("Название нового пресета:", "Мой пресет");
+  if (!name) return;
+  const id = prompt("Идентификатор (латиницей):", "my-preset");
+  if (!id) return;
+  try {
+    await api("/api/settings/presets", {method:"POST",
+      body:{id, name, from_preset:$("#mPreset").value, note:"создан из интерфейса"}});
+    toast("Пресет сохранён", "ok"); await loadVariants(id); await init();
+  } catch(e) { toast(e.message, "bad"); }
+};
+$("#mDelete").onclick = async () => {
+  const id = $("#mPreset").value;
+  if (!confirm(`Удалить пресет ${id}?`)) return;
+  try { await api(`/api/settings/presets/${id}`, {method:"DELETE"});
+        toast("Удалён"); await loadVariants(); await init(); }
+  catch(e) { toast(e.message, "bad"); }
+};
+$("#mExport").onclick = async () => {
+  const id = $("#mPreset").value;
+  const data = await api(`/api/settings/presets/${id}/export`);
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = `preset-${id}.json`; a.click();
+};
+$("#mImport").onclick = () => $("#importFile").click();
+$("#importFile").onchange = async (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    const raw = JSON.parse(await file.text());
+    const id = prompt("Идентификатор пресета:", file.name.replace(/\.\w+$/,""));
+    if (!id) return;
+    await api("/api/settings/presets/import", {method:"POST",
+      body:{id, name:id, variants: raw.variants || raw}});
+    toast("Импортировано", "ok"); await loadVariants(id); await init();
+  } catch(err) { toast(err.message, "bad"); }
+  e.target.value = "";
+};
+
+/* ================= ПРОМПТЫ ================= */
+async function loadPrompts() {
+  const d = await api("/api/settings/prompts");
+  $("#promptList").innerHTML = d.files.map(f=>{
+    const used = f.used_by ? ` · ${f.used_by}` : "";
+    return `<button data-p="${f.name}"><b>${f.name}</b>
+      <small>${f.lines} строк · ${f.backups} бэкапов${used}</small></button>`;
+  }).join("");
+  $("#decoList").innerHTML = d.decorators
+    .map(x=>`<div><span class="mono" style="color:var(--accent)">${x.name}()</span> — ${x.doc}</div>`)
+    .join("");
+  $$("#promptList button").forEach(b => b.onclick = () => openPrompt(b.dataset.p));
+  if (d.files.length) openPrompt(PROMPT || d.files[0].name);
+}
+async function openPrompt(name) {
+  const d = await api(`/api/settings/prompts/${name}`);
+  PROMPT = name;
+  $$("#promptList button").forEach(b=>b.classList.toggle("on", b.dataset.p===name));
+  $("#pName").textContent = name + ".j2";
+  $("#pEditor").value = d.content;
+  showValidation(d.validation, d.backups.length);
+}
+function showValidation(v, backups) {
+  $("#pMeta").innerHTML = v.valid
+    ? `переменные: <span class="mono">${(v.variables||[]).join(", ")||"—"}</span> · `+
+      `декораторы: <span class="mono">${(v.decorators||[]).join(", ")||"—"}</span>`
+    : `<span class="pill bad">синтаксис</span> ${v.error}`;
+  $("#pStatus").textContent = backups!=null ? `бэкапов: ${backups}` : "";
+}
+$("#pValidate").onclick = async () => {
+  const v = await api(`/api/settings/prompts/${PROMPT}/validate`,
+                      {method:"POST", body:{content:$("#pEditor").value}});
+  showValidation(v);
+  toast(v.valid ? "Синтаксис в порядке" : v.error, v.valid?"ok":"bad");
+};
+$("#pSave").onclick = async () => {
+  try {
+    const r = await api(`/api/settings/prompts/${PROMPT}`,
+                        {method:"PUT", body:{content:$("#pEditor").value}});
+    showValidation(r.validation, r.backups.length);
+    toast("Сохранено, предыдущая версия в бэкапе", "ok");
+    loadPrompts();
+  } catch(e) { toast(e.message, "bad"); }
+};
+$("#pRestore").onclick = async () => {
+  const d = await api(`/api/settings/prompts/${PROMPT}`);
+  if (!d.backups.length) return toast("Бэкапов пока нет");
+  const pick = prompt("Восстановить версию:\n" +
+    d.backups.map((b,i)=>`${i+1}. ${b.stamp}`).join("\n"), "1");
+  const b = d.backups[+pick - 1];
+  if (!b) return;
+  const r = await api(`/api/settings/prompts/${PROMPT}/restore?backup=${encodeURIComponent(b.file)}`,
+                      {method:"POST"});
+  $("#pEditor").value = r.content;
+  toast("Версия восстановлена", "ok"); loadPrompts();
+};
+
+/* табуляция в редакторе вместо ухода фокуса */
+$("#pEditor").addEventListener("keydown", e => {
+  if (e.key !== "Tab") return;
+  e.preventDefault();
+  const el = e.target, s = el.selectionStart;
+  el.value = el.value.slice(0,s) + "  " + el.value.slice(el.selectionEnd);
+  el.selectionStart = el.selectionEnd = s + 2;
+});
+
+init();
+</script>
+</body>
+</html>

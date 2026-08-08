@@ -1,0 +1,81 @@
+# Премиум — качество важнее счёта.
+# Ориентир: ~$0.90 за страницу, ~$0.08 за картинку (gemini-3.1-flash-image).
+# Роли UI: default, brief, concept, critic (🎲), render.
+
+variants:
+  default:
+    model_name: anthropic/claude-sonnet-5
+    model_params:
+    - name: anthropic/claude-sonnet-5
+      provider_id: openrouter
+      temperature: 0.8
+    - name: google/gemini-3.5-flash-lite
+      provider_id: openrouter
+      temperature: 0.8
+    default_params:
+      temperature: 0.8
+      max_tokens: 4096
+    timeout: 180
+
+  brief:
+    model_name: anthropic/claude-sonnet-5
+    model_params:
+    - name: anthropic/claude-sonnet-5
+      provider_id: openrouter
+      temperature: 0.3
+    - name: google/gemini-3.5-flash-lite
+      provider_id: openrouter
+      temperature: 0.3
+    default_params:
+      temperature: 0.3
+      max_tokens: 2000
+    timeout: 120
+
+  concept:
+    model_name: anthropic/claude-sonnet-5
+    model_params:
+    - name: anthropic/claude-sonnet-5
+      provider_id: openrouter
+      temperature: 1.0
+    - name: anthropic/claude-opus-5
+      provider_id: openrouter
+      temperature: 1.0
+    - name: google/gemini-3.5-flash-lite
+      provider_id: openrouter
+      temperature: 1.0
+    default_params:
+      temperature: 1.0
+      max_tokens: 12000
+    timeout: 300
+
+  critic:
+    model_name: anthropic/claude-sonnet-5
+    model_params:
+    - name: anthropic/claude-sonnet-5
+      provider_id: openrouter
+      temperature: 0.1
+    - name: google/gemini-3.5-flash-lite
+      provider_id: openrouter
+      temperature: 0.1
+    default_params:
+      temperature: 0.1
+      max_tokens: 1500
+    timeout: 180
+
+  render:
+    model_name: google/gemini-3.1-flash-image
+    model_params:
+    - name: google/gemini-3.1-flash-image
+      provider_id: openrouter_images
+      size: 1024x1024
+      n_reference_images: 1
+    - name: black-forest-labs/flux.2-pro
+      provider_id: openrouter_images
+      size: 1024x1024
+      n_reference_images: 4
+    - name: qwen/qwen-image-3-pro
+      provider_id: openrouter_images
+      size: 1024x1024
+      n_reference_images: 4
+    default_params: {}
+    timeout: 300

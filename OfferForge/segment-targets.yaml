@@ -1,0 +1,98 @@
+# Что искать в скине и как. Каждая запись — отдельный запрос к модели.
+#
+# Один запрос «найди все элементы» заставляет модель делить внимание: она
+# уверенно берёт крупное и молча теряет мелкое — бейдж пропадал целиком.
+# Поэтому на каждый элемент свой запрос. В модель уходит ПОЛНЫЙ скин, а
+# зона передаётся подсказкой «ищи примерно здесь»: на вырезанном куске
+# модель не видит окружения и путает плашку карточки с лентой заголовка —
+# они похожи, а различить их можно только по месту на экране. Найденное
+# вне подсказанной зоны отбраковывается.
+#
+# Добавить элемент = добавить запись сюда. Код менять не нужно.
+#
+# Поля:
+#   kind    — тип из библиотеки составляющих (frame, stars, badge, …) или
+#             любое своё имя: тогда элемент просто ляжет отдельной записью.
+#   title   — как называть элемент в интерфейсе.
+#   en      — как называть его модели. Строго по-английски: русское имя в
+#             англоязычном промпте она принимает за надпись, которую надо
+#             нарисовать, и рисует её буквами.
+#   hint    — предметное описание. Чем конкретнее, тем меньше промахов.
+#   level   — screen (искать на всём экране) или cell (внутри одной карточки).
+#   zone    — где искать: [x, y, w, h] в долях области поиска. Для screen это
+#             доли непрозрачной панели, для cell — доли одной ячейки сетки.
+#             Значения вне 0..1 допустимы: бейдж выходит за край карточки.
+#             Проще не считать руками, а обвести мышью: экран «Сегментация
+#             UI» → блок «Что искать» → выбрать строку и протянуть зону
+#             прямо на скине.
+#   counted — спрашивать ли, сколько копий видно (нужно звёздам).
+#   hollow  — элемент-кольцо: внутри обязана быть дыра (рамка карточки).
+#
+# Чего здесь нет намеренно:
+#   close  — крестик нарисован на самой ленте заголовка и приезжает с ней;
+#   footer — плашка «SET 4/10» впечатана в фоновую панель;
+#   button — это та же плашка имени, отдельного элемента нет.
+# Все три раньше искались отдельно и при сборке ложились поверх уже
+# нарисованного — дублировали то, что и так на месте.
+
+targets:
+- kind: panel
+  title: Панель набора
+  en: background panel
+  hint: The large panel that holds everything else on the screen.
+  level: screen
+  zone: [0.164, 0.012, 0.681, 0.987]
+  counted: false
+  hollow: false
+- kind: ribbon
+  title: Лента заголовка
+  en: title ribbon banner
+  hint: Ribbon with the collection name across the top of the panel.
+  level: screen
+  zone: [0.163, 0.001, 0.683, 0.284]
+  counted: false
+  hollow: false
+- kind: progress
+  title: Прогресс-бар
+  en: progress bar
+  hint: Horizontal progress bar with a counter like 8/25. Take the whole bar including
+    its frame and the icons at both ends.
+  level: screen
+  zone: [0.331, 0.16, 0.354, 0.119]
+  counted: false
+  hollow: false
+- kind: frame
+  title: Рамка
+  en: card slot frame
+  hint: 'The outer border of the card. A hollow ring: the artwork, the name plate
+    and the stars sit inside it and are not part of it.'
+  level: cell
+  zone: [0.015, 0.014, 0.916, 0.976]
+  counted: false
+  hollow: true
+- kind: stars
+  title: Звёзды
+  en: rarity star
+  hint: Row of small stars above the card showing rarity.
+  level: cell
+  zone: [0.344, -0.022, 0.229, 0.202]
+  counted: true
+  hollow: false
+- kind: badge
+  title: Цифра с плюсом
+  en: quantity badge
+  hint: Small tag with a plus and a number, like +2. Sits on the right edge of the
+    card and sticks out past it.
+  level: cell
+  zone: [0.033, 0.184, 0.359, 0.202]
+  counted: false
+  hollow: false
+- kind: nameplate
+  title: Название пака
+  en: name plate
+  hint: Plate with the item name along the bottom of the card. Take the plate itself;
+    the text on it will be redrawn.
+  level: cell
+  zone: [0.063, 0.732, 0.926, 0.253]
+  counted: false
+  hollow: false

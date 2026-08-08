@@ -1,0 +1,117 @@
+# Реестр провайдеров. Правится из интерфейса (AI → Провайдеры) или руками.
+# Добавить свой API = добавить сюда блок, кода не трогать.
+#
+# kind:
+#   openai_compatible — /chat/completions в формате OpenAI (текст и vision)
+#   openrouter_images — унифицированный Image API OpenRouter (POST /images)
+#   custom_rest       — произвольный эндпоинт: тело запроса и путь к картинкам
+#                       в ответе задаются прямо здесь, в секции image/text
+#
+# Ключи здесь НЕ хранятся — они лежат в config/secrets.json (в .gitignore).
+# api_key_env оставлен как запасной путь для CI и переменных окружения.
+#
+# Пример секции для custom_rest:
+#   image:
+#     endpoint: /v1/generate
+#     cost_per_image: 0.02
+#     body:                      # ${prompt} ${negative} ${width} ${height}
+#       text: "${prompt}"        # ${seed} ${model} ${reference_images}
+#       resolution: { width: "${width}", height: "${height}" }
+#     response:
+#       images: "result.artifacts[*].image_b64"
+#       encoding: base64
+
+providers:
+  openrouter:
+    kind: openai_compatible
+    base_url: https://openrouter.ai/api/v1
+    api_key_env: OPENROUTER_API_KEY
+    capabilities:
+    - text
+    - vision
+    endpoints:
+      chat: /chat/completions
+      models: /models
+    headers:
+      HTTP-Referer: http://localhost:8848
+      X-Title: OfferForge
+  openrouter_images:
+    kind: openrouter_images
+    base_url: https://openrouter.ai/api/v1
+    api_key_env: OPENROUTER_API_KEY
+    capabilities:
+    - image
+    endpoints:
+      images: /images
+  local_a1111:
+    kind: custom_rest
+    enabled: false
+    base_url: http://127.0.0.1:7860
+    capabilities:
+    - image
+    image:
+      endpoint: /sdapi/v1/txt2img
+      cost_per_image: 0.0
+      body:
+        prompt: ${prompt}
+        negative_prompt: ${negative}
+        width: ${width}
+        height: ${height}
+        seed: ${seed}
+        steps: 30
+        cfg_scale: 6.5
+        sampler_name: DPM++ 2M Karras
+      response:
+        images: images[*]
+        encoding: base64
+  internal_art_api:
+    kind: custom_rest
+    enabled: false
+    base_url: https://art-api.internal.example
+    api_key_env: INTERNAL_ART_API_KEY
+    auth_header: X-Api-Key
+    auth_scheme: ''
+    capabilities:
+    - image
+    image:
+      endpoint: /v1/generate
+      cost_per_image: 0.02
+      body:
+        model: ${model}
+        text: ${prompt}
+        exclude: ${negative}
+        resolution:
+          width: ${width}
+          height: ${height}
+        seed: ${seed}
+        style_refs: ${reference_images}
+      response:
+        images: result.artifacts[*].image_b64
+        encoding: base64
+  fal_lora:
+    kind: custom_rest
+    enabled: true
+    base_url: https://fal.run
+    api_key_env: FAL_KEY
+    auth_header: Authorization
+    auth_scheme: Key
+    capabilities:
+    - image
+    image:
+      endpoint: /fal-ai/flux-lora
+      cost_per_image: 0.025
+      body:
+        prompt: ${prompt}
+        image_size:
+          width: ${width}
+          height: ${height}
+        seed: ${seed}
+        num_inference_steps: 32
+        guidance_scale: 4.0
+        enable_safety_checker: false
+        loras:
+        - path: https://v3b.fal.media/files/b/0aa590cf/I5GSLFuQLogRJpGB6Oc6T_pytorch_lora_weights.safetensors
+          scale: 1.0
+      response:
+        images: images[*].url
+        encoding: url

@@ -1,0 +1,15 @@
+.env
+config/secrets.json
+config/spend.json
+prompts/.backups/
+.venv/
+__pycache__/
+*.pyc
+runs/
+style/refs/*
+!style/refs/.gitkeep
+style/fonts/*.ttf
+lora/dataset/
+lora/dataset.zip
+style/art-refs/*
+!style/art-refs/.gitkeep

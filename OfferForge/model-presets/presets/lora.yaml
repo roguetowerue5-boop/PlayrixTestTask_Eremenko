@@ -1,0 +1,81 @@
+# LoRA на стиль Icons — своя модель + откат на OpenRouter.
+# Триггер plrxcard ставится первым словом промпта (см. VariantConfig.trigger).
+#
+# Включить после обучения:
+#   1. FAL_KEY в .env / secrets
+#   2. providers.yaml → fal_lora.enabled: true + URL .safetensors
+#   3. Выбрать пресет «LoRA (Icons)» в наполнении
+#
+# Пока fal_lora выключен — ротация уйдёт на openrouter_images с art-refs.
+
+variants:
+  default:
+    model_name: google/gemini-3.5-flash-lite
+    model_params:
+    - name: google/gemini-3.5-flash-lite
+      provider_id: openrouter
+      temperature: 0.7
+    default_params:
+      temperature: 0.7
+      max_tokens: 4096
+      reasoning:
+        effort: none
+    timeout: 120
+
+  brief:
+    model_name: google/gemini-3.5-flash-lite
+    model_params:
+    - name: google/gemini-3.5-flash-lite
+      provider_id: openrouter
+      temperature: 0.3
+    default_params:
+      temperature: 0.3
+      max_tokens: 2000
+      reasoning:
+        effort: none
+    timeout: 90
+
+  concept:
+    model_name: google/gemini-3.5-flash-lite
+    model_params:
+    - name: google/gemini-3.5-flash-lite
+      provider_id: openrouter
+      temperature: 1.0
+    default_params:
+      temperature: 1.0
+      max_tokens: 8000
+      reasoning:
+        effort: none
+    timeout: 180
+
+  critic:
+    model_name: google/gemini-3.5-flash-lite
+    model_params:
+    - name: google/gemini-3.5-flash-lite
+      provider_id: openrouter
+      temperature: 0.1
+    default_params:
+      temperature: 0.1
+      max_tokens: 800
+      reasoning:
+        effort: none
+    timeout: 90
+
+  render:
+    trigger: plrxcard
+    model_name: flux-lora
+    model_params:
+    - name: flux-lora
+      provider_id: fal_lora
+      size: 1024x1024
+      n_reference_images: 0
+    - name: black-forest-labs/flux.2-pro
+      provider_id: openrouter_images
+      size: 1024x1024
+      n_reference_images: 4
+    - name: google/gemini-2.5-flash-image
+      provider_id: openrouter_images
+      size: 1024x1024
+      n_reference_images: 1
+    default_params: {}
+    timeout: 300

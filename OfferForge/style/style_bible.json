@@ -1,0 +1,94 @@
+{
+  "_comment": "Единственный источник правды по стилю и правилам коллекции. Подставляется и в промпт генерации, и в рубрику критика, и в промпт концептов — чтобы правило было описано один раз, а не в трёх местах.",
+
+  "summary": "Стилизованный 3D-рендер мобильной казуальной игры: глянцевые материалы, насыщенные цвета, мягкий свет сверху-слева, скруглённая геометрия, крупные читаемые формы.",
+
+  "_rules_comment": "Тень здесь НЕ упоминается намеренно: в категории 1 объект висит в воздухе и тень запрещена, в остальных — нужна. Общее правило про тень противоречило бы категорийному, и модель не могла выполнить оба — критик браковал именно за это.\n\nПодача сверена с эталонным датасетом Icons/ (159 артов игры), а не с общим впечатлением от скриншота. На превью карточки кажутся живописными из-за размера, но в оригинале это именно 3D-рендер с глянцем и чистыми бликами. Попытка переписать правила на painterly была ошибкой и откачена.",
+
+  "rules": [
+    "stylized 3D render, mobile casual game art, glossy materials",
+    "bold saturated colors, high contrast, punchy lighting",
+    "soft key light from upper left, subtle warm rim light",
+    "rounded chunky geometry, thick forms, no thin fragile parts",
+    "one single object, perfectly centered, generous margin on all sides",
+    "simplified shapes: large readable masses instead of fine detail",
+    "clean silhouette readable at 120px icon size",
+    "no text, no letters, no numbers, no logos, no watermarks, no UI elements",
+    "no photorealism, no gritty texture, no muted desaturated palette",
+    "square composition, no border, no frame, no card frame"
+  ],
+
+  "negative": "text, letters, words, numbers, logo, watermark, signature, ui, hud, frame, border, card frame, collage, multiple objects, cropped object, cluttered background, tiny details, fine texture, individual hairs, fur strands, mesh grille, photorealistic, grainy, low contrast, washed out, blurry",
+
+  "categories": {
+    "_comment": "Фоны сверены с датасетом Icons/. Раньше в категории 1 любой узор был запрещён, но в эталоне почти каждая такая карточка идёт с деликатным паттерном в тон: диагональные полосы, клетка, волны, мягкие лучи. Запрет делал фоны плоскими и непохожими на игру.",
+
+    "1": {
+      "object": "the object floats in mid air, no ground contact, NO cast shadow and NO shadow ellipse beneath it, nothing touching it",
+      "background": "one flat vivid colour filling the frame, carrying a subtle low-contrast pattern in a close shade of the same hue — diagonal stripes, soft checker, gentle waves or mild radial rays. The pattern stays quiet background texture and never competes with the object; no scene, no objects, no depth"
+    },
+    "2": {
+      "object": "the object rests on a simple flat surface with a soft contact shadow directly under it",
+      "background": "a plain vertical plane behind it, single color with a gentle gradient; no radial rays or sunburst"
+    },
+    "3": {
+      "object": "the object stands on a realistic tangible surface such as wood, stone or fabric, with a grounded contact shadow",
+      "background": "dimensional background: realistic surface underneath, simple vertical plane or soft gradient behind"
+    },
+    "4": {
+      "object": "the object is placed inside a realistic environment but remains the clear central focus, large in frame, naturally lit and grounded",
+      "background": "a full believable scene with depth, softly out of focus behind the object"
+    },
+    "5": {
+      "object": "one or two stylized cartoon characters acting out a simple ironic situation, placed in a realistic environment but remaining central",
+      "background": "a full believable scene with depth"
+    }
+  },
+
+  "collection": {
+    "_comment": "Правила устройства коллекции. Взяты из ТЗ и проверяются валидатором в app/pipeline/stages.py — если правишь здесь, сверься с _validate_plan.",
+
+    "structure": "Коллекция посвящена одной широкой теме и состоит из 16 наборов по 10 карточек. Набор — это подтема коллекции.",
+
+    "set_size": 10,
+    "sets_per_collection": 16,
+
+    "rules": [
+      "Набор — это подтема коллекции: для «Лета» это «Пляж», «Сад», «Спорт».",
+      "Наборы внутри одной коллекции не повторяются и не пересекаются по смыслу.",
+      "Объект узнаётся силуэтом в размере иконки: никаких мелких деталей.",
+      "Внутри одного набора объекты не повторяются.",
+      "В каждом наборе присутствуют все четыре категории композиции — независимо от редкости карточек.",
+      "Редкость не влияет на визуальное отображение предмета: одна и та же вещь на 1 и на 5 звёздах рисуется одинаково.",
+      "Никакого текста, надписей, логотипов и узнаваемых торговых марок внутри арта.",
+      "Не используем изображения реальных людей и узнаваемых персонажей — только обобщённые предметы."
+    ],
+
+    "rarity_distribution": [1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
+    "category_distribution": {"1": 3, "2": 3, "3": 2, "4": 2},
+
+    "gold_cards": {
+      "enabled": false,
+      "_why": "В текущем задании три набора «Кино-коллекции» делаются БЕЗ золотых карточек. Поддержка остаётся в коде: поставь true, и в набор добавятся карточки категории 5.",
+      "rules": [
+        "Золотая карточка — сюжетная картинка с фоном категории 4.",
+        "На одной золотой карточке не больше двух персонажей.",
+        "Персонажи разыгрывают ироничную эмоциональную сценку с очень простым нарративом.",
+        "16-й набор — гранд-сет: только золотые карточки, тема кульминационная для всей коллекции."
+      ]
+    },
+
+    "variant_strategy": [
+      "Варианты набора должны отличаться творческим решением, а не палитрой.",
+      "Плохо: пять наборов одних и тех же предметов в разных цветах.",
+      "Хорошо: разные углы захода на подтему — другой срез, другая эпоха, другая сторона предмета.",
+      "Пересечение объектов между вариантами — не больше двух."
+    ]
+  },
+
+  "canvas": {
+    "art_size": [1024, 1024],
+    "card_size": [512, 720],
+    "safe_margin_pct": 8
+  }
+}

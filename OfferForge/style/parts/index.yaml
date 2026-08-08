@@ -1,0 +1,58 @@
+# Реестр составляющих оффера. Заполняется разбором эталонной карточки
+# (экран «Составляющие») или вручную.
+# Версия выбирается в момент генерации — сборка детерминирована.
+
+version: 1
+parts:
+  frame:
+    blue:
+      title: blue
+      created: '2026-08-08T20:18:57'
+      source: импорт из Cutted-ready
+  stars:
+    blue:
+      title: blue
+      created: '2026-08-08T20:18:56'
+      source: импорт из Cutted-ready
+  nameplate:
+    blue:
+      title: blue
+      created: '2026-08-08T20:18:57'
+      source: импорт из Cutted-ready
+  badge:
+    blue:
+      title: blue
+      created: '2026-08-08T20:18:57'
+      source: импорт из Cutted-ready
+  button: {}
+  panel:
+    blue:
+      title: blue
+      created: '2026-08-08T20:18:57'
+      source: импорт из Cutted-ready
+  font:
+    playrix:
+      title: Playrix Offer
+      created: '2026-08-08T21:40:42'
+      source: подобран под референсы Framing/Packs
+  ribbon:
+    blue:
+      title: blue
+      created: '2026-08-08T20:18:57'
+      source: импорт из Cutted-ready
+  progress:
+    blue:
+      title: blue
+      created: '2026-08-08T20:18:57'
+      source: импорт из Cutted-ready
+  close: {}
+  footer: {}
+defaults:
+  stars: blue
+  panel: blue
+  badge: blue
+  frame: blue
+  nameplate: blue
+  progress: blue
+  ribbon: blue
+  font: playrix

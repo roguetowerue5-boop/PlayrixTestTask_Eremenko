@@ -1,0 +1,37 @@
+# Secrets & local env
+.env
+**/.env
+**/config/secrets.json
+**/config/spend.json
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/venv/
+
+# OfferForge runtime / heavy artifacts
+OfferForge/runs/
+OfferForge/lora/dataset/
+OfferForge/lora/dataset.zip
+OfferForge/lora/jobs.json
+OfferForge/prompts/.backups/
+OfferForge/_assignment_pages/
+OfferForge/style/refs/*
+!OfferForge/style/refs/.gitkeep
+OfferForge/style/art-refs/*
+!OfferForge/style/art-refs/.gitkeep
+
+# Fonts (optional local); keep README
+OfferForge/style/fonts/*.ttf
+OfferForge/style/fonts/*.otf
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Nested empty Desktop stub (we use this root as the repo)
+PlayrixTestTask_Eremenko/

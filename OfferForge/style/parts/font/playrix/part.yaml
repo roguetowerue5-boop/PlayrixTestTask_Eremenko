@@ -1,0 +1,16 @@
+title: Playrix Offer
+note: Fredoka Bold под Packs/05_Collection_Coolness — title жёлтый, nameplate белый+синяя обводка.
+source: подобран под референсы Framing/Packs
+created: '2026-08-08T21:40:42'
+assets: []
+anchor: null
+font:
+  file: default.ttf
+  size: 48
+  color: '#FFFFFF'
+  stroke_color: '#1A2A6B'
+  stroke_width: 3
+  uppercase: true
+  shadow_offset:
+  - 0
+  - 4

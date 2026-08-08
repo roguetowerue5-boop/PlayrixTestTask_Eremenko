@@ -1,0 +1,44 @@
+# Манифест пресетов. Интерфейс читает этот файл и строит из него список.
+# Новый пресет = файл в ./presets/ + строка ниже. Код менять не нужно.
+#
+# Цены ориентировочные (OpenRouter, август 2026), на сценарий «наполнение»:
+#   1× brief + 1× concept + 10× render. Фактический счёт зависит от модели.
+version: 1
+recommended_models: recommended-models.yaml
+default_preset: budget
+presets:
+- id: budget
+  name: Бюджет
+  file: presets/budget.yaml
+  note: "~$0.05 за страницу (10 артов) · ~$0.004/картинка · концепт ~$0.002"
+  cost_fill_usd: 0.05
+  cost_image_usd: 0.004
+  cost_concept_usd: 0.002
+- id: balanced
+  name: Баланс
+  file: presets/balanced.yaml
+  note: "~$0.12 за страницу · ~$0.01/картинка · сильнее концепт и vision"
+  cost_fill_usd: 0.12
+  cost_image_usd: 0.01
+  cost_concept_usd: 0.01
+- id: premium
+  name: Премиум
+  file: presets/premium.yaml
+  note: "~$0.90 за страницу · ~$0.08/картинка · лучший арт и текст"
+  cost_fill_usd: 0.90
+  cost_image_usd: 0.08
+  cost_concept_usd: 0.05
+- id: lora
+  name: LoRA (Icons)
+  file: presets/lora.yaml
+  note: "своя Flux-LoRA на Icons (fal, scale 1.25) · откат OpenRouter · ~$0.025/картинка"
+  cost_fill_usd: 0.30
+  cost_image_usd: 0.025
+  cost_concept_usd: 0.01
+- id: offline
+  name: Оффлайн (mock)
+  file: presets/offline.yaml
+  note: "без сети и ключей · $0 · проверка UI на заглушках"
+  cost_fill_usd: 0
+  cost_image_usd: 0
+  cost_concept_usd: 0
