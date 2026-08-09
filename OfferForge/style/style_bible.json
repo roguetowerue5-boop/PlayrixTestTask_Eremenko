@@ -21,27 +21,42 @@
   "negative": "text, letters, words, numbers, logo, watermark, signature, ui, hud, frame, border, card frame, collage, multiple objects, cropped object, cluttered background, tiny details, fine texture, individual hairs, fur strands, mesh grille, photorealistic, grainy, low contrast, washed out, blurry",
 
   "categories": {
-    "_comment": "Фоны сверены с датасетом Icons/. Раньше в категории 1 любой узор был запрещён, но в эталоне почти каждая такая карточка идёт с деликатным паттерном в тон: диагональные полосы, клетка, волны, мягкие лучи. Запрет делал фоны плоскими и непохожими на игру.",
+    "_comment": "Категории композиции из ТЗ (ai-pilled producer). Источник — таблица «как формируются коллекции»: объект + фон. Фоны сверены также с Icons/. Правишь здесь — подхватят category_table()/category_rule() и валидатор.",
 
     "1": {
-      "object": "the object floats in mid air, no ground contact, NO cast shadow and NO shadow ellipse beneath it, nothing touching it",
-      "background": "one flat vivid colour filling the frame, carrying a subtle low-contrast pattern in a close shade of the same hue — diagonal stripes, soft checker, gentle waves or mild radial rays. The pattern stays quiet background texture and never competes with the object; no scene, no objects, no depth"
+      "title_ru": "Простой объект в воздухе",
+      "title_en": "Simple object, floating",
+      "object": "ONE simple object without fine details, floating in mid-air, hanging with no ground contact; NO cast shadow, NO shadow ellipse, nothing touching it",
+      "background": "simple background only: a single vivid colour with a soft gradient, OR a quiet same-hue pattern (diagonal stripes, soft checker, gentle waves, mild radial light rays, repeating simple shapes). Pattern stays low-contrast texture and never competes with the object",
+      "forbid": "no floor, no table, no wall plane, no room, no landscape, no second object, no depth cues beyond the flat backdrop"
     },
     "2": {
-      "object": "the object rests on a simple flat surface with a soft contact shadow directly under it",
-      "background": "a plain vertical plane behind it, single color with a gentle gradient; no radial rays or sunburst"
+      "title_ru": "Простой объект на простой поверхности",
+      "title_en": "Simple object on a simple surface",
+      "object": "ONE simple object without fine details, standing/resting on a simple flat surface with a soft contact shadow directly under it",
+      "background": "behind the object — a simple vertical plane: solid colour with a gentle gradient, OR a quiet pattern (stripes, repeating shapes, uniform colour, soft light rays). Surface under the object is flat and geometric, not photoreal wood/stone",
+      "forbid": "no full environment, no outdoor scenery, no realistic volumetric room, no second hero object"
     },
     "3": {
-      "object": "the object stands on a realistic tangible surface such as wood, stone or fabric, with a grounded contact shadow",
-      "background": "dimensional background: realistic surface underneath, simple vertical plane or soft gradient behind"
+      "title_ru": "Реалистичная поверхность и объёмный фон",
+      "title_en": "Realistic surface and volumetric background",
+      "object": "ONE object standing on a realistic tangible surface (wood, stone, fabric, counter) with a grounded contact shadow; object stays central and large",
+      "background": "volumetric setup: realistic surface in the foreground under the object; behind it keep a SIMPLE backdrop (soft gradient, quiet pattern, or mild rays) — more 3D than cat.2 because of the surface, but NOT a full environment scene",
+      "forbid": "no full outdoor/indoor location, no horizon landscape, no multi-object still life competing with the hero"
     },
     "4": {
-      "object": "the object is placed inside a realistic environment but remains the clear central focus, large in frame, naturally lit and grounded",
-      "background": "a full believable scene with depth, softly out of focus behind the object"
+      "title_ru": "Реалистичное окружение",
+      "title_en": "Realistic environment",
+      "object": "ONE object integrated into a realistic surrounding environment but remaining the clear central focus, large in frame, naturally lit and grounded",
+      "background": "a full believable scene with depth (beach, field, street, room, seashore, etc.); environment supports the object, softly readable behind it, not busier than the hero",
+      "forbid": "no floating icon look, no empty flat studio void, no characters/people (unless gold cat.5 is enabled)"
     },
     "5": {
-      "object": "one or two stylized cartoon characters acting out a simple ironic situation, placed in a realistic environment but remaining central",
-      "background": "a full believable scene with depth"
+      "title_ru": "Золотая карточка — сюжетная сценка",
+      "title_en": "Golden card — narrative scene",
+      "object": "one or two stylized cartoon characters acting out a tiny ironic narrative; characters stay central and readable at icon size",
+      "background": "realistic environment like category 4 (full scene with depth) framing the little story",
+      "forbid": "no more than two characters, no crowded cast, no unreadable micro-action, no brand-mascot lookalikes"
     }
   },
 
@@ -58,10 +73,10 @@
       "Наборы внутри одной коллекции не повторяются и не пересекаются по смыслу.",
       "Объект узнаётся силуэтом в размере иконки: никаких мелких деталей.",
       "Внутри одного набора объекты не повторяются.",
-      "В каждом наборе присутствуют все четыре категории композиции — независимо от редкости карточек.",
+      "В каждом наборе присутствуют все четыре категории композиции из ТЗ: 1 — объект в воздухе, 2 — на простой поверхности, 3 — реалистичная поверхность + простой объёмный фон, 4 — полное реалистичное окружение. Категория не зависит от редкости (звёзд).",
       "Редкость не влияет на визуальное отображение предмета: одна и та же вещь на 1 и на 5 звёздах рисуется одинаково.",
       "Никакого текста, надписей, логотипов и узнаваемых торговых марок внутри арта.",
-      "Не используем изображения реальных людей и узнаваемых персонажей — только обобщённые предметы."
+      "Не используем изображения реальных людей и узнаваемых персонажей — только обобщённые предметы (персонажи — только на золотых картах категории 5, если они включены)."
     ],
 
     "rarity_distribution": [1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
@@ -71,9 +86,9 @@
       "enabled": false,
       "_why": "В текущем задании три набора «Кино-коллекции» делаются БЕЗ золотых карточек. Поддержка остаётся в коде: поставь true, и в набор добавятся карточки категории 5.",
       "rules": [
-        "Золотая карточка — сюжетная картинка с фоном категории 4.",
-        "На одной золотой карточке не больше двух персонажей.",
-        "Персонажи разыгрывают ироничную эмоциональную сценку с очень простым нарративом.",
+        "Золотая карточка = категория 5: сюжетная сценка с фоном как у категории 4 (реалистичное окружение).",
+        "На одной золотой карточке — один или два персонажа, не больше.",
+        "Персонажи разыгрывают ироничную эмоциональную сценку с очень простым нарративом; персонажи остаются в центре кадра.",
         "16-й набор — гранд-сет: только золотые карточки, тема кульминационная для всей коллекции."
       ]
     },

@@ -63,6 +63,21 @@ def record_spend(usd: float, provider_id: str = "unknown") -> float:
         return data["total_usd"]
 
 
+def clear_spend() -> dict[str, Any]:
+    """Обнуляет локальный счётчик трат OfferForge.
+
+    Не трогает баланс на OpenRouter/fal — только ledger в config/spend.json.
+    Ставит skip_runs_bootstrap, иначе следующий /api/billing снова
+    подтянет историю из runs/meta.json.
+    """
+    with _lock:
+        data = _empty()
+        data["skip_runs_bootstrap"] = True
+        data["cleared_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        _save(data)
+        return data
+
+
 def sum_runs_cost() -> float:
     """Сумма cost_usd по meta.json в runs/ (наполнение + коллекции)."""
     total = 0.0
@@ -173,8 +188,13 @@ async def billing_snapshot() -> dict[str, Any]:
     spend = load_spend()
     local_total = float(spend.get("total_usd") or 0)
     runs_total = sum_runs_cost()
-    # Берём max: ledger мог отстать от runs или наоборот.
-    spent_usd = round(max(local_total, runs_total), 4)
+    # После ручного сброса не подмешиваем историю runs — иначе «Очистить»
+    # тут же снова покажет старую сумму.
+    if spend.get("skip_runs_bootstrap"):
+        spent_usd = round(local_total, 4)
+    else:
+        # Берём max: ledger мог отстать от runs или наоборот.
+        spent_usd = round(max(local_total, runs_total), 4)
 
     accounts: list[dict[str, Any]] = []
     or_key = (

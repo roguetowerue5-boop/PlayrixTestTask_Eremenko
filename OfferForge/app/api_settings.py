@@ -64,6 +64,7 @@ class ProviderCreate(BaseModel):
 async def get_providers() -> dict:
     return {
         "providers": settings.list_providers(),
+        "builtin": sorted(settings.BUILTIN_PROVIDERS),
         "kinds": [
             {"id": "openai_compatible", "name": "OpenAI-совместимый (текст, vision)"},
             {"id": "openrouter_images", "name": "OpenRouter Images (генерация)"},
@@ -97,7 +98,18 @@ async def remove_provider(provider_id: str) -> dict:
         settings.delete_provider(provider_id)
     except KeyError as e:
         raise HTTPException(404, str(e)) from e
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
     return {"ok": True}
+
+
+@router.delete("/providers/{provider_id}/key")
+async def clear_provider_key(provider_id: str) -> dict:
+    """Удалить только API-ключ, провайдера оставить."""
+    try:
+        return settings.clear_provider_key(provider_id)
+    except KeyError as e:
+        raise HTTPException(404, str(e)) from e
 
 
 @router.post("/providers/{provider_id}/test")
@@ -147,9 +159,21 @@ async def test_provider(provider_id: str) -> dict:
                          else "каталог доступен")
             notes.append("реальный запрос проверяется кнопкой у варианта render")
         else:
+            # DeepSeek V4 / MiniMax по умолчанию включают reasoning и съедают
+            # крошечный бюджет «Проверить» (раньше max_tokens=5 → finish=length
+            # после 1 токена). Без effort:none кнопка врёт «обрезан лимит».
             probe = _pick_probe_model(provider)
             res = await provider.generate_text(
-                probe, TextRequest(prompt="ping", params={"max_tokens": 5}), 30
+                probe,
+                TextRequest(
+                    prompt="Reply with exactly one word: pong",
+                    params={
+                        "max_tokens": 64,
+                        "temperature": 0,
+                        "reasoning": {"effort": "none"},
+                    },
+                ),
+                30,
             )
             notes.append(f"модель {probe} ответила: {res.text.strip()[:30] or 'пусто'}")
         return {"ok": True, "message": " · ".join(notes),

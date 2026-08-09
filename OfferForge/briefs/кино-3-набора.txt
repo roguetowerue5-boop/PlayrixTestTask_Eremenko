@@ -23,7 +23,13 @@
 --------------------------------------------------------------------------------
 ОБЩИЙ «ДОП. К ГЕНЕРАЦИИ АРТА» (копируй во все три набора)
 --------------------------------------------------------------------------------
-single centered object, stylized 3D game card icon, glossy materials, bold saturated colors, rounded chunky shapes, soft studio light, plain simple background, no hands, no people, no full scene, not a photo, not cinematic still, readable silhouette at icon size
+single centered hero subject, stylized 3D game card icon, glossy materials,
+bold saturated colors, rounded chunky shapes, soft studio key light,
+readable silhouette at icon size, not a photo, not cinematic still,
+no hands, no people, no text.
+Background and staging MUST follow the card's composition category
+(1 floating / 2 simple surface / 3 realistic surface / 4 full environment) —
+do NOT force a blank studio void on every card.
 
 
 ================================================================================

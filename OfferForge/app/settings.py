@@ -268,10 +268,32 @@ def create_provider(provider_id: str, cfg: dict[str, Any]) -> dict:
     return next(p for p in list_providers() if p["id"] == provider_id)
 
 
+def clear_provider_key(provider_id: str) -> dict:
+    """Убирает только ключ — сам провайдер остаётся в реестре."""
+    raw = providers_config()
+    if provider_id not in (raw.get("providers") or {}):
+        raise KeyError(f"Провайдер '{provider_id}' не найден")
+    save_secret(provider_id, None)
+    invalidate_caches()
+    return next(p for p in list_providers() if p["id"] == provider_id)
+
+
+# Встроенные провайдеры: удаление ломает пресеты. Ключ чистится отдельно.
+BUILTIN_PROVIDERS = frozenset({
+    "openrouter", "openrouter_images", "fal_lora",
+    "local_a1111", "internal_art_api",
+})
+
+
 def delete_provider(provider_id: str) -> None:
     raw = providers_config()
     if provider_id not in (raw.get("providers") or {}):
         raise KeyError(f"Провайдер '{provider_id}' не найден")
+    if provider_id in BUILTIN_PROVIDERS:
+        raise ValueError(
+            f"'{provider_id}' — встроенный провайдер, его нельзя удалить. "
+            "Чтобы убрать ключ — нажми «Очистить ключ»."
+        )
     del raw["providers"][provider_id]
     _dump_yaml(PROVIDERS_FILE, raw, PROVIDERS_HEADER)
     save_secret(provider_id, None)

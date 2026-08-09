@@ -57,6 +57,8 @@
     text-underline-offset:2px;
   }
   nav .billing .brefresh:hover { color:var(--accent); }
+  nav .billing .bactions { display:flex; flex-wrap:wrap; gap:4px 12px; }
+  nav .billing .bactions .brefresh { margin-top:4px; }
   nav .foot { padding:12px 20px 16px; font-size:11px; color:var(--muted); }
 
   main { padding:26px 32px; overflow:auto; max-height:100vh; }
@@ -162,6 +164,10 @@
         <div id="navAccounts"></div>
       </div>
       <button type="button" class="brefresh" id="navBillingRefresh">обновить баланс</button>
+      <div class="bactions">
+        <button type="button" class="brefresh" id="navBillingClear"
+          title="Обнулить локальный счётчик OfferForge (баланс на API не трогает)">очистить бюджет</button>
+      </div>
     </div>
     <div class="foot" id="navFoot"></div>
   </nav>
@@ -1354,6 +1360,15 @@ async function init() {
   BILLING_TIMER = setInterval(() => refreshBilling(true), 60000);
   const btn = $("#navBillingRefresh");
   if (btn) btn.onclick = () => refreshBilling(false);
+  const clearBtn = $("#navBillingClear");
+  if (clearBtn) clearBtn.onclick = async () => {
+    if (!confirm("Обнулить локальный счётчик «Потрачено»?\nБаланс на OpenRouter / fal не изменится.")) return;
+    try {
+      const d = await api("/api/billing", {method:"DELETE"});
+      renderBilling(d);
+      toast("Бюджет обнулён", "ok");
+    } catch (e) { toast(e.message, "bad"); }
+  };
 }
 
 /* ================= LoRA TRAINER ================= */
@@ -1521,6 +1536,7 @@ $("#loraApply").onclick = async () => {
 /* ================= ПРОВАЙДЕРЫ ================= */
 async function loadProviders() {
   const d = await api("/api/settings/providers");
+  const builtin = new Set(d.builtin || []);
   $("#npKind").innerHTML = d.kinds.map(k=>`<option value="${k.id}">${k.name}</option>`).join("");
 
   $("#providerList").innerHTML = d.providers.map(p => `
@@ -1537,7 +1553,7 @@ async function loadProviders() {
         </div>
         <div class="btns">
           <button class="btn" data-act="test">Проверить</button>
-          <button class="btn danger" data-act="del">Удалить</button>
+          ${builtin.has(p.id) ? "" : '<button class="btn danger" data-act="del">Удалить</button>'}
         </div>
       </div>
       <div class="row">
@@ -1550,6 +1566,9 @@ async function loadProviders() {
       <div class="btns">
         <button class="btn pri" data-act="save">Сохранить</button>
         <button class="btn" data-act="toggle">${p.enabled?"Выключить":"Включить"}</button>
+        ${p.has_key && !p.key_from_env
+          ? '<button class="btn danger" data-act="clearkey">Очистить ключ</button>'
+          : ""}
         <span class="hint" data-res style="align-self:center"></span>
       </div>
     </div>`).join("");
@@ -1572,10 +1591,21 @@ async function loadProviders() {
       await api(`/api/settings/providers/${pid}`, {method:"PATCH", body:{enabled: !p.enabled}});
       loadProviders();
     };
-    card.querySelector('[data-act="del"]').onclick = async () => {
+    const delBtn = card.querySelector('[data-act="del"]');
+    if (delBtn) delBtn.onclick = async () => {
       if (!confirm(`Удалить провайдера ${pid}?`)) return;
-      await api(`/api/settings/providers/${pid}`, {method:"DELETE"});
-      toast(`${pid} удалён`); loadProviders();
+      try {
+        await api(`/api/settings/providers/${pid}`, {method:"DELETE"});
+        toast(`${pid} удалён`); loadProviders();
+      } catch(e) { toast(e.message, "bad"); }
+    };
+    const clearBtn = card.querySelector('[data-act="clearkey"]');
+    if (clearBtn) clearBtn.onclick = async () => {
+      if (!confirm(`Удалить только API-ключ у ${pid}? Провайдер останется.`)) return;
+      try {
+        await api(`/api/settings/providers/${pid}/key`, {method:"DELETE"});
+        toast(`${pid}: ключ очищен`, "ok"); loadProviders();
+      } catch(e) { toast(e.message, "bad"); }
     };
     card.querySelector('[data-act="test"]').onclick = async (ev) => {
       ev.target.disabled = true; res.textContent = "проверяю…";

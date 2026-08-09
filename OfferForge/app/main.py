@@ -121,10 +121,24 @@ async def get_billing() -> dict:
     spend = load_spend()
     runs = sum_runs_cost()
     # Первый запуск после обновления — подтянуть историю из runs в ledger.
-    if float(spend.get("total_usd") or 0) < runs * 0.5 and runs > 0:
+    # После «Очистить бюджет» bootstrap не делаем.
+    if (
+        not spend.get("skip_runs_bootstrap")
+        and float(spend.get("total_usd") or 0) < runs * 0.5
+        and runs > 0
+    ):
         gap = round(runs - float(spend.get("total_usd") or 0), 6)
         if gap > 0:
             record_spend(gap, "runs_bootstrap")
+    return await billing_snapshot()
+
+
+@app.delete("/api/billing")
+async def reset_billing() -> dict:
+    """Обнулить локальный счётчик «Потрачено суммарно»."""
+    from app.billing import billing_snapshot, clear_spend
+
+    clear_spend()
     return await billing_snapshot()
 
 

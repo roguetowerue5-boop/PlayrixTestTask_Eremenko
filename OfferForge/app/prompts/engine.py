@@ -39,20 +39,27 @@ def _style_rules() -> str:
 
 @decorator("category_rule")
 def _category_rule(category: str) -> str:
-    """Правило композиции для категории 1..5 (из ТЗ)."""
+    """Правило композиции для категории 1..5 (из ТЗ) — жёсткий блок для art.j2."""
     sb = style_bible()
     cats = sb.get("categories") or {}
-    c = cats.get(str(category)) or {}
+    key = str(category)
+    c = cats.get(key) or {}
     if not c:
         return ""
-    # Раздельными строками: слитый текст модель читает как одно длинное
-    # требование и теряет половину.
-    bits = []
+    title = c.get("title_en") or c.get("title_ru") or f"category {key}"
+    lines = [f"COMPOSITION CATEGORY {key} — {title}:"]
     if c.get("object"):
-        bits.append(f"Object: {c['object']}.")
+        lines.append(f"- Object: {c['object']}.")
     if c.get("background"):
-        bits.append(f"Background: {c['background']}.")
-    return "\n".join(bits)
+        lines.append(f"- Background: {c['background']}.")
+    if c.get("forbid"):
+        lines.append(f"- Do NOT: {c['forbid']}.")
+    lines.append(
+        "Follow THIS category exactly for staging and background. "
+        "Do not simplify every card into a floating icon on a blank studio void "
+        "unless this is category 1."
+    )
+    return "\n".join(lines)
 
 
 @decorator("negative_prompt")
@@ -91,14 +98,29 @@ def _collection_rules() -> str:
 
 @decorator("category_table")
 def _category_table() -> str:
-    """Описание всех четырёх категорий композиции одним блоком."""
+    """Таблица категорий композиции из ТЗ (для collection_fill / brief)."""
     cats = style_bible().get("categories") or {}
-    lines = []
-    for key in ("1", "2", "3", "4"):
+    gold_on = bool((_collection().get("gold_cards") or {}).get("enabled"))
+    keys = ("1", "2", "3", "4", "5") if gold_on else ("1", "2", "3", "4")
+    blocks: list[str] = []
+    for key in keys:
         c = cats.get(key) or {}
-        if c:
-            lines.append(f"{key} — {c.get('object', '')}; фон: {c.get('background', '')}")
-    return "\n".join(lines)
+        if not c:
+            continue
+        title = c.get("title_ru") or c.get("title_en") or f"Категория {key}"
+        lines = [f"Категория {key} — {title}"]
+        if c.get("object"):
+            lines.append(f"  объект: {c['object']}")
+        if c.get("background"):
+            lines.append(f"  фон: {c['background']}")
+        if c.get("forbid"):
+            lines.append(f"  нельзя: {c['forbid']}")
+        blocks.append("\n".join(lines))
+    header = (
+        "Категории композиции (из ТЗ). В каждом обычном наборе должны быть "
+        "категории 1–4; категория 5 — только золотые карточки, если они включены."
+    )
+    return header + "\n\n" + "\n\n".join(blocks)
 
 
 @decorator("rarity_distribution")
