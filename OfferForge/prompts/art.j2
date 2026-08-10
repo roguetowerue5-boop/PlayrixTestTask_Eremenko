@@ -1,16 +1,10 @@
-{# Порядок: объект → категория композиции (ТЗ) → стиль. Референсы (если есть)
-   — только look&feel; модель часто копирует предметы из Icons, это запрещено. #}
-MUST DRAW THIS OBJECT (ignore any other object ideas): {{ subject }}.
-{% if trigger is defined and trigger %}{{ trigger }}, {% endif %}single centered object, game card collectible icon.
-{% if trigger is defined and trigger %}
+{# Positive как в ComfyUI Icons Style A (icons_flux_gguf.json / Icons_flux_comfy_guide).
+   Порядок: trigger → STYLE LOCK → subject sentence → категория → avoid. #}
+{% if trigger is defined and trigger %}{{ trigger }}, {% endif %}{{ style_lock() }}
 
-STYLE LOCK ({{ trigger }} LoRA — materials & lighting only):
-stylized 3D game card collectible icon, glossy materials, bold saturated colors,
-rounded chunky shapes, soft studio key light from upper left,
-ONE hero subject, readable silhouette, not a photograph, not cinematic still.
-Staging and BACKGROUND must still follow the composition category below —
-do NOT force every card into a blank floating studio void.
-{% endif %}
+A glossy stylized 3D render of {{ subject }}, single hero object slightly three-quarter view, centered in frame, polished materials with bright specular hits, hyper-saturated candy colors, soft studio lighting, polished casual mobile-game collectible icon.
+
+MUST DRAW THIS OBJECT ONLY: {{ subject }}.
 {% if extra %}
 
 MUST FOLLOW — producer notes for this image (do not ignore):
@@ -18,24 +12,25 @@ MUST FOLLOW — producer notes for this image (do not ignore):
 {% endif %}
 
 {{ category_rule(category) }}
+Staging and BACKGROUND must follow the composition category above —
+do NOT force every card into a blank floating studio void unless this is category 1.
 
-{{ style_rules() }}
 color palette: {{ palette_words(palette) }}
-avoid: {{ negative_prompt() }}, hands, fingers, photorealistic skin, text, watermark, copying reference subjects
+
+avoid: {{ negative_prompt() }}, hands, fingers, photorealistic skin, copying reference subjects
 {% if category|string != "5" %}
 avoid also: people, characters, crowds
 {% endif %}
 
 SUBJECT LOCK AGAIN: the subject is "{{ subject }}" — nothing else.
 {% if trigger is defined and trigger %}
-If this is category 1–2, keep it icon-like and simple.
+If this is category 1–2, keep it icon-like and simple (Style A backdrop: sunburst / gradient / quiet pattern).
 If this is category 3–4, allow the grounded surface / environment required by
 the category, but keep "{{ subject }}" dominant in frame.
 If this is category 5, allow one–two characters as the subject description says.
 {% else %}
 If reference images are attached: copy ONLY materials, lighting and stylization.
-Do NOT copy objects from references (no flippers, arches, pool scenes, people,
-or any other subject shown there). Replace them entirely with "{{ subject }}".
+Do NOT copy objects from references. Replace them entirely with "{{ subject }}".
 {% endif %}
 {% if extra %}
 

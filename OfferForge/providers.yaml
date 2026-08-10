@@ -110,7 +110,7 @@ providers:
         guidance_scale: 4.0
         enable_safety_checker: false
         loras:
-        - path: https://v3b.fal.media/files/b/0aa590cf/I5GSLFuQLogRJpGB6Oc6T_pytorch_lora_weights.safetensors
+        - path: https://v3b.fal.media/files/b/0aa5cefa/uExJkkq1_ac9lrdmWfdR1_pytorch_lora_weights.safetensors
           scale: 1.0
       response:
         images: images[*].url

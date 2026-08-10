@@ -201,7 +201,7 @@
           </label>
           <textarea id="fillArtExtra" style="min-height:64px"
             placeholder="Общие правки для всех картинок: стиль, ракурс, чего избегать…"></textarea>
-          <div class="hint">Уходит в <span class="mono">art</span> · 🎲 — <span class="mono">suggest_art_extra</span></div>
+          <div class="hint">Уходит в <span class="mono">art</span> как Comfy Style A · 🎲 — английский art-prompt lock</div>
         </div>
         <div class="row">
           <div class="field"><label>Пресет моделей</label>
@@ -741,6 +741,22 @@ async function fillSuggest(kind) {
 $("#fillDescDice").onclick = () => fillSuggest("description");
 $("#fillArtExtraDice").onclick = () => fillSuggest("art_extra");
 
+function fillArtExtraResolved() {
+  const el = $("#fillArtExtra");
+  let v = (el?.value || "").trim();
+  const def = (CFG && (CFG.art_extra_default || CFG.style_lock)) || "";
+  // Старый autofill LoRA конфликтовал с категориями 3–4 — заменяем на Style A.
+  if (/plain simple background|no full scene/i.test(v) && def) {
+    v = def;
+    if (el) el.value = v;
+  }
+  if (!v && def) {
+    v = def;
+    if (el) el.value = v;
+  }
+  return v;
+}
+
 function fillFillPresets() {
   const sel = $("#fillPreset");
   if (!sel) return;
@@ -768,13 +784,10 @@ function fillFillPresets() {
     if (!note) return;
     note.textContent = p?.note
       || "Роли: brief → concept → render";
-    // Для LoRA сразу подставляем жёсткий style-extra, если поле пустое.
+    // Для LoRA сразу подставляем Comfy Style A lock, если поле пустое.
     const artExtra = $("#fillArtExtra");
     if (artExtra && sel.value === "lora" && !(artExtra.value || "").trim()) {
-      artExtra.value =
-        "plrxcard style: stylized 3D game card icon, glossy materials, " +
-        "single centered object, no hands, no people, no full scene, " +
-        "plain simple background, not a photo";
+      artExtra.value = (CFG && (CFG.art_extra_default || CFG.style_lock)) || "";
     }
   };
   sel.onchange = syncNote;
@@ -823,7 +836,7 @@ $("#fillGo").onclick = async () => {
       body: JSON.stringify({
         title,
         description: $("#fillDesc").value,
-        art_extra: $("#fillArtExtra").value,
+        art_extra: fillArtExtraResolved(),
         preset_id: presetId,
         concurrency: +$("#fillConc").value || 3,
         n_variants: nVar,
@@ -1000,7 +1013,7 @@ async function fillGenOne(slot) {
         run_id: FILL.run_id,
         slot,
         preset_id: $("#fillPreset").value || null,
-        art_extra: [$("#fillArtExtra").value, extraLive].filter(Boolean).join("\n"),
+        art_extra: [fillArtExtraResolved(), extraLive].filter(Boolean).join("\n"),
         subject: card.subject,
         name: card.name,
         category: card.category,
@@ -1047,9 +1060,10 @@ async function fillRegen(slot) {
   if (!card.subject) return toast("Задай subject для слота", "bad");
   const btn = $(`#fillGrid [data-regen="${slot}"]`);
   if (btn) btn.disabled = true;
+  const artExtraMerged = [fillArtExtraResolved(), extraLive].filter(Boolean).join("\n");
   fillLog(
     `Перегенерация слота ${slot}` +
-      (extraLive ? ` · доп: ${extraLive.slice(0, 80)}` : " · без доп. пожеланий"),
+      (artExtraMerged ? ` · доп: ${artExtraMerged.slice(0, 80)}` : " · Style A default"),
     "dim",
   );
   try {
@@ -1066,18 +1080,19 @@ async function fillRegen(slot) {
         category: card.category,
         rarity: card.rarity,
         palette: FILL.palette,
-        extra: extraLive,
+        extra: artExtraMerged,
       },
     });
     fillUpsertCard({...d, extra: extraLive, subject: card.subject});
     if (d.cost_usd) FILL.cost_usd = (FILL.cost_usd || 0) + (+d.cost_usd || 0);
-    const used = (d.prompt || "").includes(extraLive) || !extraLive;
+    const used = !artExtraMerged || (d.prompt || "").includes(extraLive) ||
+      (d.prompt || "").toLowerCase().includes("playrix-like");
     fillLog(
-      (extraLive
+      (artExtraMerged
         ? (used
           ? `Слот ${slot} обновлён, пожелания учтены в промпте`
           : `Слот ${slot} обновлён — проверь промпт: пожелания могли не попасть`)
-        : `Слот ${slot} обновлён`) +
+        : `Слот ${slot} обновлён (Comfy Style A)`) +
         (d.cost_usd ? ` · ${formatCost(d.cost_usd)}` : ""),
       "ok",
     );

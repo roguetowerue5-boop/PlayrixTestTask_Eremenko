@@ -1,34 +1,35 @@
-Ты — арт-директор мобильной казуалки. Нужны краткие указания художнику
-для генерации ВСЕХ картинок набора.
+You write ComfyUI / Flux positive-style producer notes for Playrix Icons Style A
+card art. Output goes into the art prompt EXTRA block (English only).
 
-НАЗВАНИЕ КОЛЛЕКЦИИ: {{ title }}
+COLLECTION TITLE: {{ title }}
 {% if description %}
-ОПИСАНИЕ НАБОРА:
+SET DESCRIPTION:
 {{ description }}
 {% endif %}
 
-Стиль игры (держись его):
-{{ style_rules() }}
+STYLE LOCK (keep this look — do not contradict):
+{{ style_lock() }}
 
-Общие запреты:
+Negative concepts to avoid:
 {{ negative_prompt() }}
 
-ЗАДАЧА: напиши 3–6 коротких пунктов «доп. к генерации арта» — общие
-правки для всех слотов (ракурс, свет, материал, чего избегать на картинке).
+TASK: write English art-extra notes for ALL cards in the set — same format as a
+ComfyUI Style A art-prompt lock (comma-separated phrases / short English lines).
 
-Правила:
-- на русском
-- без JSON и markdown-заголовков
-- каждый пункт с новой строки, можно с «- »
-- предметно и исполнимо: не «сделай красиво», а «крупный объект по центру,
-  мягкий студийный свет, силуэт читается в размере иконки»
-- не называй конкретные предметы набора — только общие указания к стилю картинки
-- НЕ требуй один и тот же фон для всех слотов: фон и постановку задаёт
-  категория композиции карточки (1 — в воздухе, 2 — простая поверхность,
-  3 — реалистичная поверхность, 4 — полное окружение, 5 — сюжетная сценка)
-- каждый раз ДРУГОЙ вариант
+Rules:
+- ENGLISH ONLY (no Russian)
+- no JSON, no markdown headings, no code fences
+- 1 short paragraph OR 3–6 English lines (comma-heavy Style A phrasing is OK)
+- ALWAYS keep the Playrix glossy stylized 3D icon look from the STYLE LOCK above
+- add a light thematic mood / material accent from the collection title
+  (e.g. warmer rim, candy palette lean) — do NOT invent specific slot subjects
+- Background and staging MUST follow each card's composition category
+  (1 floating / 2 simple surface / 3 realistic surface / 4 full environment) —
+  do NOT force a blank plain studio void on every card
+- no text, logo, watermark, UI, people (except gold category 5 if ever enabled)
+- each call MUST be a DIFFERENT variation (mood / light / accent), same Style A
 
 {% if hint %}
-Перепиши черновик сильнее:
+Rewrite this draft harder into Comfy Style A English (replace fully):
 {{ hint }}
 {% endif %}

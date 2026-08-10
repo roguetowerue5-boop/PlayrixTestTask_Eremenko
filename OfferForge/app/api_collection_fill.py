@@ -37,20 +37,65 @@ router = APIRouter(prefix="/api/collection/fill", tags=["collection-fill"])
 FILL_RUNS = RUNS_DIR / "collection-fill"
 N_SLOTS = 10
 
-# Жёсткий стиль для пресетов с trigger (LoRA). Добавляется к extra на сервере.
+# Жёсткий стиль для пресетов с trigger (LoRA) — тот же STYLE LOCK, что в ComfyUI.
+# Не форсируем «plain background / no full scene»: фон задаёт category_rule.
+# Fallback, если в style_bible нет art_extra_default / style_lock.
 LORA_STYLE_EXTRA = (
-    "plrxcard style: stylized 3D game card icon, glossy materials, "
-    "single centered object only, no hands, no people, no full scene, "
-    "plain simple background, not a photo, not cinematic still"
+    "Playrix-like casual mobile game icon, glossy stylized 3D render, "
+    "single hero object centered in frame filling most of the image, "
+    "smooth rounded chunky shapes with soft beveled edges, "
+    "high-gloss plastic and clay materials with crisp specular highlights, "
+    "no surface noise, hyper-saturated candy colors, "
+    "bright soft studio lighting with key light from above-left, "
+    "gentle ambient fill, soft contact shadow when grounded, "
+    "clean polished match-3 collectible icon, high-contrast clear composition, "
+    "no text, no logo. "
+    "Background and staging MUST follow the card composition category "
+    "(1 floating / 2 simple surface / 3 realistic surface / 4 full environment) — "
+    "do NOT force a blank studio void on every card. "
+    "Avoid: photorealistic, photograph, cinematic still, film grain, muted colors, "
+    "anime, flat vector, text, logo, watermark, UI, multiple competing objects."
 )
+
+_STYLE_MARKER = "playrix-like casual mobile game icon"
+
+
+def _art_extra_default() -> str:
+    sb = style_bible()
+    return (
+        (sb.get("art_extra_default") or sb.get("style_lock") or LORA_STYLE_EXTRA)
+        or ""
+    ).strip()
 
 
 def _with_lora_extra(extra: str, trigger: str) -> str:
-    bits = []
-    if (trigger or "").strip():
-        bits.append(LORA_STYLE_EXTRA)
-    if (extra or "").strip():
-        bits.append(extra.strip())
+    """Для LoRA-пресетов гарантируем Style A lock; без дубля, если уже в extra."""
+    text = (extra or "").strip()
+    if not (trigger or "").strip():
+        return text
+    if _STYLE_MARKER in text.lower():
+        return text
+    lock = _art_extra_default()
+    if not lock:
+        return text
+    return f"{lock}\n\n{text}".strip() if text else lock
+
+
+def _brief_art_extra(brief: Brief | None, art_extra: str = "") -> str:
+    """Склеивает доп. к арту + mood/avoid из brief. Пустое → Comfy Style A default."""
+    bits: list[str] = []
+    text = (art_extra or "").strip()
+    if not text:
+        text = _art_extra_default()
+    if text:
+        bits.append(text)
+    if brief:
+        if brief.mood:
+            bits.append("Mood: " + ", ".join(brief.mood))
+        if brief.must_avoid:
+            bits.append("Avoid depicting: " + ", ".join(brief.must_avoid))
+        if brief.era:
+            bits.append(f"Era: {brief.era}")
     return "\n".join(bits)
 
 
@@ -338,20 +383,6 @@ async def _invent_items(
     )
 
 
-def _brief_art_extra(brief: Brief | None, art_extra: str = "") -> str:
-    bits: list[str] = []
-    if (art_extra or "").strip():
-        bits.append(art_extra.strip())
-    if brief:
-        if brief.mood:
-            bits.append("Mood: " + ", ".join(brief.mood))
-        if brief.must_avoid:
-            bits.append("Avoid depicting: " + ", ".join(brief.must_avoid))
-        if brief.era:
-            bits.append(f"Era: {brief.era}")
-    return "\n".join(bits)
-
-
 def _cards_from_plan(plan: dict) -> list[dict]:
     cards = []
     for i, el in enumerate(plan.get("elements") or []):
@@ -615,6 +646,7 @@ async def fill_collection(req: FillRequest):
                         "rarity": rarity,
                         "file": rel,
                         "url": f"/runs/{rel}",
+                        "prompt": meta.get("prompt", ""),
                         **{k: meta[k] for k in ("model", "seed", "cost_usd", "elapsed_s")},
                     }
                     emit("card", card)
@@ -937,7 +969,7 @@ async def regenerate_card(req: RegenRequest) -> dict:
             palette=palette,
             out_path=path,
             seed=random.randint(1, 2**31 - 1),
-            extra=req.extra,
+            extra=_brief_art_extra(None, req.extra),
         )
     except ProviderError as e:
         raise HTTPException(502, str(e)) from e

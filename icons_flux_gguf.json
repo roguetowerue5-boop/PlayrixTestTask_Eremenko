@@ -1,0 +1,290 @@
+{
+  "id": "icons-flux-gguf-q5",
+  "revision": 1,
+  "last_node_id": 13,
+  "last_link_id": 13,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UnetLoaderGGUF",
+      "pos": [-900, 120],
+      "size": [360, 60],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "MODEL", "type": "MODEL", "slot_index": 0, "links": [11]}
+      ],
+      "title": "UNET · Flux.1 Dev Q5 GGUF",
+      "properties": {"Node name for S&R": "UnetLoaderGGUF"},
+      "widgets_values": ["flux1-dev-Q5_0.gguf"]
+    },
+    {
+      "id": 13,
+      "type": "LoraLoaderModelOnly",
+      "pos": [-480, 120],
+      "size": [380, 90],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"name": "model", "type": "MODEL", "link": 11}
+      ],
+      "outputs": [
+        {"name": "MODEL", "type": "MODEL", "slot_index": 0, "links": [1]}
+      ],
+      "title": "LoRA · SBG_quality_2_big · 0.85",
+      "properties": {"Node name for S&R": "LoraLoaderModelOnly"},
+      "widgets_values": ["SBG_quality_2_big.safetensors", 0.85]
+    },
+    {
+      "id": 2,
+      "type": "DualCLIPLoaderGGUF",
+      "pos": [-900, 260],
+      "size": [360, 110],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "CLIP", "type": "CLIP", "slot_index": 0, "links": [2, 3]}
+      ],
+      "title": "CLIP · T5 GGUF + CLIP-L",
+      "properties": {"Node name for S&R": "DualCLIPLoaderGGUF"},
+      "widgets_values": [
+        "t5-v1_1-xxl-encoder-Q4_K_M.gguf",
+        "clip_l.safetensors",
+        "flux"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "VAELoader",
+      "pos": [-900, 440],
+      "size": [360, 60],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "VAE", "type": "VAE", "slot_index": 0, "links": [4]}
+      ],
+      "title": "VAE · ae.safetensors",
+      "properties": {"Node name for S&R": "VAELoader"},
+      "widgets_values": ["ae.safetensors"]
+    },
+    {
+      "id": 4,
+      "type": "CLIPTextEncode",
+      "pos": [-320, 40],
+      "size": [520, 340],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "clip", "type": "CLIP", "link": 2}
+      ],
+      "outputs": [
+        {"name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 0, "links": [5]}
+      ],
+      "title": "Positive · SBG_quality + Icons Style A",
+      "properties": {"Node name for S&R": "CLIPTextEncode"},
+      "widgets_values": [
+        "SBG_quality, Playrix-like casual mobile game icon, glossy stylized 3D render, single hero object centered in frame filling most of the image, smooth rounded chunky shapes with soft beveled edges, high-gloss plastic and clay materials with crisp specular highlights, no surface noise, hyper-saturated candy colors, bright soft studio lighting with key light from above-left, gentle ambient fill, soft contact shadow under the object, clean polished match-3 collectible icon, high-contrast clear composition, no text, no logo.\n\nA glossy stylized 3D render of a vintage film camera with a short lens and a leather strap, single hero object slightly three-quarter view, polished black and silver body with bright specular hits, set against a deep purple #8E4AD5 radial sunburst background with soft vignette, hyper-saturated candy colors, soft studio lighting, gentle drop shadow, polished casual mobile-game collectible icon.\n\nAvoid: photorealistic, photograph, cinematic still, film grain, muted colors, dark moody atmosphere, harsh shadows, gritty texture, text, logo, watermark, UI, frame, flat vector, anime, multiple competing objects, background-only scene."
+      ]
+    },
+    {
+      "id": 5,
+      "type": "CLIPTextEncode",
+      "pos": [-320, 440],
+      "size": [520, 100],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {"name": "clip", "type": "CLIP", "link": 3}
+      ],
+      "outputs": [
+        {"name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 0, "links": [6]}
+      ],
+      "title": "Negative · leave empty (Flux)",
+      "properties": {"Node name for S&R": "CLIPTextEncode"},
+      "widgets_values": [""]
+    },
+    {
+      "id": 6,
+      "type": "FluxGuidance",
+      "pos": [260, 40],
+      "size": [280, 60],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {"name": "conditioning", "type": "CONDITIONING", "link": 5}
+      ],
+      "outputs": [
+        {"name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 0, "links": [7]}
+      ],
+      "title": "Flux Guidance · 3.5",
+      "properties": {"Node name for S&R": "FluxGuidance"},
+      "widgets_values": [3.5]
+    },
+    {
+      "id": 7,
+      "type": "EmptySD3LatentImage",
+      "pos": [260, 180],
+      "size": [280, 110],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "LATENT", "type": "LATENT", "slot_index": 0, "links": [8]}
+      ],
+      "title": "Latent · 1024×1024",
+      "properties": {"Node name for S&R": "EmptySD3LatentImage"},
+      "widgets_values": [1024, 1024, 1]
+    },
+    {
+      "id": 8,
+      "type": "KSampler",
+      "pos": [600, 80],
+      "size": [320, 460],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {"name": "model", "type": "MODEL", "link": 1},
+        {"name": "positive", "type": "CONDITIONING", "link": 7},
+        {"name": "negative", "type": "CONDITIONING", "link": 6},
+        {"name": "latent_image", "type": "LATENT", "link": 8}
+      ],
+      "outputs": [
+        {"name": "LATENT", "type": "LATENT", "slot_index": 0, "links": [9]}
+      ],
+      "title": "KSampler · euler / simple / 28",
+      "properties": {"Node name for S&R": "KSampler"},
+      "widgets_values": [42, "fixed", 28, 1, "euler", "simple", 1]
+    },
+    {
+      "id": 9,
+      "type": "VAEDecode",
+      "pos": [980, 120],
+      "size": [240, 50],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {"name": "samples", "type": "LATENT", "link": 9},
+        {"name": "vae", "type": "VAE", "link": 4}
+      ],
+      "outputs": [
+        {"name": "IMAGE", "type": "IMAGE", "slot_index": 0, "links": [10]}
+      ],
+      "properties": {"Node name for S&R": "VAEDecode"},
+      "widgets_values": []
+    },
+    {
+      "id": 10,
+      "type": "SaveImage",
+      "pos": [1280, 80],
+      "size": [420, 520],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {"name": "images", "type": "IMAGE", "link": 10}
+      ],
+      "outputs": [],
+      "title": "Save · icons_flux",
+      "properties": {"Node name for S&R": "SaveImage"},
+      "widgets_values": ["icons_flux"]
+    },
+    {
+      "id": 11,
+      "type": "MarkdownNote",
+      "pos": [-900, 560],
+      "size": [520, 300],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Icons · Flux GGUF + SBG LoRA",
+      "properties": {},
+      "widgets_values": [
+        "## Icons Style A + SBG_quality_2_big\n\n**LoRA:** `SBG_quality_2_big.safetensors`\n- trigger: **`SBG_quality`** (уже в Positive)\n- weight: **0.85** (рекомендуют 0.7–0.95)\n- даёт контраст/композицию постера; не для background-only\n\n**База:** Flux.1 Dev Q5 GGUF · guidance 3.5 · 28 steps · CFG 1 · 1024²\n\nЕсли стиль «плывёт» в постер — опусти LoRA до **0.7**.\nЕсли слабо видно — **0.95**.\n\nСравни со/без: mute ноду LoRA (bypass) тем же seed."
+      ],
+      "color": "#432",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 12,
+      "type": "MarkdownNote",
+      "pos": [260, 360],
+      "size": [300, 200],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Быстрые subjects",
+      "properties": {},
+      "widgets_values": [
+        "В начале Positive всегда: `SBG_quality,`\n\n**Камера** — сейчас\n**Якорь** — navy anchor, `#ECA411` sunburst\n**Веер** — purple fan, yellow waves\n**Нуар** — fedora + revolver, `#10BCE5`"
+      ],
+      "color": "#223",
+      "bgcolor": "#000"
+    }
+  ],
+  "links": [
+    [11, 1, 0, 13, 0, "MODEL"],
+    [1, 13, 0, 8, 0, "MODEL"],
+    [2, 2, 0, 4, 0, "CLIP"],
+    [3, 2, 0, 5, 0, "CLIP"],
+    [4, 3, 0, 9, 1, "VAE"],
+    [5, 4, 0, 6, 0, "CONDITIONING"],
+    [6, 5, 0, 8, 2, "CONDITIONING"],
+    [7, 6, 0, 8, 1, "CONDITIONING"],
+    [8, 7, 0, 8, 3, "LATENT"],
+    [9, 8, 0, 9, 0, "LATENT"],
+    [10, 9, 0, 10, 0, "IMAGE"]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "1 · Loaders + LoRA",
+      "bounding": [-940, 60, 880, 480],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "2 · Prompt",
+      "bounding": [-360, 0, 560, 580],
+      "color": "#8A8",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "3 · Sample & Save",
+      "bounding": [220, 0, 1520, 640],
+      "color": "#A88",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {"scale": 0.7, "offset": [1000, 80]},
+    "info": {
+      "name": "Icons Flux GGUF Q5 + SBG LoRA",
+      "description": "Flux.1 Dev Q5 + SBG_quality_2_big (0.85) + Icons Style A",
+      "version": "1.1"
+    }
+  },
+  "version": 0.4
+}

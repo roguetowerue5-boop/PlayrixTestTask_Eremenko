@@ -1,47 +1,55 @@
 {
-  "_comment": "Единственный источник правды по стилю и правилам коллекции. Подставляется и в промпт генерации, и в рубрику критика, и в промпт концептов — чтобы правило было описано один раз, а не в трёх местах.",
+  "_comment": "Единственный источник правды по стилю и правилам коллекции. Стиль сверен с ComfyUI Icons Style A (Icons_flux_comfy_guide / icons_flux_gguf.json) и датасетом Icons/.",
 
-  "summary": "Стилизованный 3D-рендер мобильной казуальной игры: глянцевые материалы, насыщенные цвета, мягкий свет сверху-слева, скруглённая геометрия, крупные читаемые формы.",
+  "summary": "Playrix-like casual mobile game icon: glossy stylized 3D render, single hero object, hyper-saturated candy colors, soft studio light from above-left, match-3 collectible polish.",
 
-  "_rules_comment": "Тень здесь НЕ упоминается намеренно: в категории 1 объект висит в воздухе и тень запрещена, в остальных — нужна. Общее правило про тень противоречило бы категорийному, и модель не могла выполнить оба — критик браковал именно за это.\n\nПодача сверена с эталонным датасетом Icons/ (159 артов игры), а не с общим впечатлением от скриншота. На превью карточки кажутся живописными из-за размера, но в оригинале это именно 3D-рендер с глянцем и чистыми бликами. Попытка переписать правила на painterly была ошибкой и откачена.",
+  "style_lock": "Playrix-like casual mobile game icon, glossy stylized 3D render, single hero object centered in frame filling most of the image, smooth rounded chunky shapes with soft beveled edges, high-gloss plastic and clay materials with crisp specular highlights, no surface noise, no grit, hyper-saturated candy colors, bright soft studio lighting with key light from above-left, gentle ambient fill, subtle rim light, soft contact shadow under the object when grounded, clean polished match-3 collectible icon, readable silhouette, high production value, high-contrast clear composition, no text, no logo, no watermark",
+
+  "_art_extra_default_comment": "Дефолт для поля «доп. к арту» / 🎲 / LoRA autofill — тот же STYLE LOCK + правило категорий, что в ComfyUI Icons Style A.",
+  "art_extra_default": "Playrix-like casual mobile game icon, glossy stylized 3D render, single hero object centered in frame filling most of the image, smooth rounded chunky shapes with soft beveled edges, high-gloss plastic and clay materials with crisp specular highlights, no surface noise, no grit, hyper-saturated candy colors, bright soft studio lighting with key light from above-left, gentle ambient fill, subtle rim light, soft contact shadow under the object when grounded, clean polished match-3 collectible icon, readable silhouette, high production value, high-contrast clear composition, no text, no logo, no watermark.\n\nBackground and staging MUST follow the card composition category (1 floating / 2 simple surface / 3 realistic surface / 4 full environment) — do NOT force a blank studio void on every card.\nAvoid: photorealistic, photograph, cinematic still, film grain, muted colors, anime, flat vector, text, logo, watermark, UI, multiple competing objects.",
+
+  "_rules_comment": "rules[] — те же слова, что STYLE LOCK в ComfyUI, списком для style_rules(). Тень в style_lock мягкая при grounded; для категории 1 запрет тени задаёт category_rule (forbid).",
 
   "rules": [
-    "stylized 3D render, mobile casual game art, glossy materials",
-    "bold saturated colors, high contrast, punchy lighting",
-    "soft key light from upper left, subtle warm rim light",
-    "rounded chunky geometry, thick forms, no thin fragile parts",
-    "one single object, perfectly centered, generous margin on all sides",
-    "simplified shapes: large readable masses instead of fine detail",
-    "clean silhouette readable at 120px icon size",
+    "Playrix-like casual mobile game icon, glossy stylized 3D render",
+    "single hero object centered in frame filling most of the image",
+    "smooth rounded chunky shapes with soft beveled edges",
+    "high-gloss plastic and clay materials with crisp specular highlights",
+    "no surface noise, no grit, hyper-saturated candy colors",
+    "bright soft studio lighting with key light from above-left",
+    "gentle ambient fill, subtle rim light",
+    "soft contact shadow under the object when grounded (categories 2–4)",
+    "clean polished match-3 collectible icon, readable silhouette",
+    "high production value, high-contrast clear composition",
     "no text, no letters, no numbers, no logos, no watermarks, no UI elements",
-    "no photorealism, no gritty texture, no muted desaturated palette",
-    "square composition, no border, no frame, no card frame"
+    "square composition, no border, no frame, no card frame",
+    "not a photograph, not cinematic still, not anime, not flat vector"
   ],
 
-  "negative": "text, letters, words, numbers, logo, watermark, signature, ui, hud, frame, border, card frame, collage, multiple objects, cropped object, cluttered background, tiny details, fine texture, individual hairs, fur strands, mesh grille, photorealistic, grainy, low contrast, washed out, blurry",
+  "negative": "photorealistic, photograph, DSLR, cinematic still, film grain, muted desaturated colors, dark moody atmosphere, harsh shadows, gritty texture, rust, dirt, pores, individual hairs, fine fur strands, mesh grille, tiny illegible details, cluttered background, text, letters, numbers, logo, watermark, signature, UI, hud, frame, border, card border, card frame, flat vector, flat 2D, anime, manga, illustration sketch, oil painting, multiple competing objects, cropped subject, background-only scene, collage, blurry, washed out, low contrast",
 
   "categories": {
-    "_comment": "Категории композиции из ТЗ (ai-pilled producer). Источник — таблица «как формируются коллекции»: объект + фон. Фоны сверены также с Icons/. Правишь здесь — подхватят category_table()/category_rule() и валидатор.",
+    "_comment": "Категории композиции из ТЗ. Фоны Style A из Icons: sunburst / radial gradient / quiet pattern — как в Icons_flux_comfy_guide.",
 
     "1": {
       "title_ru": "Простой объект в воздухе",
       "title_en": "Simple object, floating",
       "object": "ONE simple object without fine details, floating in mid-air, hanging with no ground contact; NO cast shadow, NO shadow ellipse, nothing touching it",
-      "background": "simple background only: a single vivid colour with a soft gradient, OR a quiet same-hue pattern (diagonal stripes, soft checker, gentle waves, mild radial light rays, repeating simple shapes). Pattern stays low-contrast texture and never competes with the object",
+      "background": "simple Style A backdrop: single vivid hue with soft radial gradient OR radial sunburst rays OR quiet same-hue pattern (diagonal stripes, gentle waves, quiet diamonds, mild concentric rings). Pattern stays low-contrast and never competes with the object",
       "forbid": "no floor, no table, no wall plane, no room, no landscape, no second object, no depth cues beyond the flat backdrop"
     },
     "2": {
       "title_ru": "Простой объект на простой поверхности",
       "title_en": "Simple object on a simple surface",
       "object": "ONE simple object without fine details, standing/resting on a simple flat surface with a soft contact shadow directly under it",
-      "background": "behind the object — a simple vertical plane: solid colour with a gentle gradient, OR a quiet pattern (stripes, repeating shapes, uniform colour, soft light rays). Surface under the object is flat and geometric, not photoreal wood/stone",
+      "background": "behind the object — a simple vertical plane: solid colour with a gentle gradient, OR quiet Style A pattern (stripes, repeating shapes, soft light rays, soft sunburst). Surface under the object is flat and geometric, not photoreal wood/stone",
       "forbid": "no full environment, no outdoor scenery, no realistic volumetric room, no second hero object"
     },
     "3": {
       "title_ru": "Реалистичная поверхность и объёмный фон",
       "title_en": "Realistic surface and volumetric background",
       "object": "ONE object standing on a realistic tangible surface (wood, stone, fabric, counter) with a grounded contact shadow; object stays central and large",
-      "background": "volumetric setup: realistic surface in the foreground under the object; behind it keep a SIMPLE backdrop (soft gradient, quiet pattern, or mild rays) — more 3D than cat.2 because of the surface, but NOT a full environment scene",
+      "background": "volumetric setup: realistic surface in the foreground under the object; behind it keep a SIMPLE Style A backdrop (soft gradient, quiet pattern, mild rays or soft sunburst) — more 3D than cat.2 because of the surface, but NOT a full environment scene",
       "forbid": "no full outdoor/indoor location, no horizon landscape, no multi-object still life competing with the hero"
     },
     "4": {

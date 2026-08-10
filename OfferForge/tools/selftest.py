@@ -142,9 +142,10 @@ def test_prompts() -> None:
           not ({"concepts", "critic", "segment", "part_extract", "dissect"} & set(names)),
           str(names))
     art = engine.render("art", subject="film reel", category="2", palette=["#f00"], extra="")
-    check("art.j2 подставляет правило категории", "rests on a simple flat surface" in art)
+    check("art.j2 подставляет правило категории", "standing/resting on a simple flat surface" in art)
     check("art.j2 подставляет стилевые правила", "stylized 3D render" in art)
-    check("art.j2 тянет negative_prompt", "avoid:" in art)
+    check("art.j2 тянет negative_prompt", "avoid:" in art.lower())
+    check("art.j2 Style A lock из Comfy", "Playrix-like casual mobile game icon" in art)
     fill = engine.render(
         "collection_fill",
         title="Test",

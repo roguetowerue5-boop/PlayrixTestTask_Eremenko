@@ -37,6 +37,17 @@ def _style_rules() -> str:
     return "\n".join(f"- {p}" for p in parts)
 
 
+@decorator("style_lock")
+def _style_lock() -> str:
+    """Тот же STYLE LOCK, что в ComfyUI Icons Style A Positive."""
+    sb = style_bible()
+    lock = (sb.get("style_lock") or "").strip()
+    if lock:
+        return lock
+    parts = sb.get("rules") or []
+    return ", ".join(parts)
+
+
 @decorator("category_rule")
 def _category_rule(category: str) -> str:
     """Правило композиции для категории 1..5 (из ТЗ) — жёсткий блок для art.j2."""

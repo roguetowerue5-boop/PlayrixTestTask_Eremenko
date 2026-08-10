@@ -27,6 +27,7 @@ from app.config import (
     preset_index,
     providers_config,
     recommended_models,
+    style_bible,
 )
 from app.api_assemble import router as assemble_router
 from app.api_settings import router as settings_router
@@ -149,6 +150,9 @@ async def get_config() -> dict:
     variants: list[str] = []
     if presets:
         variants = sorted(load_preset(presets[0]["id"]).variants.keys())
+    sb = style_bible()
+    style_lock = (sb.get("style_lock") or "").strip()
+    art_extra_default = (sb.get("art_extra_default") or style_lock).strip()
     return {
         "presets": presets,
         "default_preset": preset_index().get("default_preset"),
@@ -162,6 +166,8 @@ async def get_config() -> dict:
         "parts_available": PARTS_AVAILABLE,
         "parts_error": PARTS_ERROR,
         "skins": available_skins(),
+        "style_lock": style_lock,
+        "art_extra_default": art_extra_default,
     }
 
 

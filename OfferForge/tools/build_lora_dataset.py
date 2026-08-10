@@ -43,8 +43,11 @@ from PIL import Image
 TRIGGER = "plrxcard"
 
 BASE_CAPTION = (
-    "stylized 3D render game card art, glossy materials, bold saturated colors, "
-    "soft key light from upper left, rounded chunky shapes, single centered object"
+    "Playrix-like casual mobile game icon, glossy stylized 3D render, "
+    "single hero object centered, smooth rounded chunky shapes with soft beveled edges, "
+    "high-gloss plastic and clay materials with crisp specular highlights, "
+    "hyper-saturated candy colors, soft studio key light from above-left, "
+    "clean polished match-3 collectible icon"
 )
 
 

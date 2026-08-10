@@ -35,3 +35,6 @@ Thumbs.db
 
 # Nested empty Desktop stub (we use this root as the repo)
 PlayrixTestTask_Eremenko/
+
+# Local ComfyUI install (models/weights — too large for git)
+ComfyUI/
