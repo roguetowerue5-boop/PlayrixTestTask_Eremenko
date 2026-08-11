@@ -23,20 +23,10 @@
 --------------------------------------------------------------------------------
 ОБЩИЙ «ДОП. К ГЕНЕРАЦИИ АРТА» (копируй во все три набора)
 --------------------------------------------------------------------------------
-Playrix-like casual mobile game icon, glossy stylized 3D render,
-single hero object centered in frame filling most of the image,
-smooth rounded chunky shapes with soft beveled edges,
-high-gloss plastic and clay materials with crisp specular highlights,
-no surface noise, hyper-saturated candy colors,
-bright soft studio lighting with key light from above-left,
-gentle ambient fill, soft contact shadow when grounded,
-clean polished match-3 collectible icon, high-contrast clear composition,
-no text, no logo.
-Background and staging MUST follow the card's composition category
-(1 floating / 2 simple surface / 3 realistic surface / 4 full environment) —
-do NOT force a blank studio void on every card.
-Avoid: photorealistic, photograph, cinematic still, film grain, muted colors,
-anime, flat vector, text, logo, watermark, UI, multiple competing objects.
+Keep a Playrix Icons look: glossy stylized 3D, candy colors, soft studio light.
+Prefer the card composition category for background and staging
+(1 floating / 2 simple surface / 3 realistic surface / 4 full environment).
+Avoid photoreal, cinematic stills, text, logos, UI.
 
 
 ================================================================================

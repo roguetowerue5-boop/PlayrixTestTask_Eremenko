@@ -156,6 +156,7 @@ async def _openrouter_balance(key: str) -> dict[str, Any]:
 
 
 async def _fal_balance(key: str) -> dict[str, Any]:
+    """Баланс fal через Platform API (нужен ключ со scope ADMIN)."""
     out: dict[str, Any] = {"provider": "fal", "ok": False}
     headers = {"Authorization": f"Key {key}", "Accept": "application/json"}
     try:
@@ -166,22 +167,63 @@ async def _fal_balance(key: str) -> dict[str, Any]:
                 params={"expand": "credits"},
             )
         if r.status_code >= 400:
-            out["error"] = f"HTTP {r.status_code}"
+            detail = ""
+            try:
+                err = (r.json() or {}).get("error") or {}
+                if isinstance(err, dict):
+                    detail = (err.get("message") or err.get("type") or "").strip()
+                elif isinstance(err, str):
+                    detail = err.strip()
+            except (ValueError, TypeError):
+                detail = (r.text or "")[:160].strip()
+            hint = ""
+            if r.status_code in (401, 403):
+                hint = (
+                    " — для баланса нужен Admin API key "
+                    "(fal.ai → Keys → scope ADMIN), сохрани как FAL_ADMIN_KEY"
+                )
+            out["error"] = f"HTTP {r.status_code}" + (f": {detail}" if detail else "") + hint
             return out
         data = r.json() or {}
-        credits = data.get("credits") or {}
+        credits = data.get("credits") if isinstance(data.get("credits"), dict) else {}
         bal = credits.get("current_balance")
+        if bal is None:
+            bal = data.get("current_balance")
         out.update({
             "ok": True,
             "username": data.get("username"),
             "remaining_usd": float(bal) if bal is not None else None,
-            "currency": credits.get("currency") or "USD",
+            "currency": (credits.get("currency") if credits else None) or data.get("currency") or "USD",
         })
+        if out["remaining_usd"] is None:
+            out["ok"] = False
+            out["error"] = "ответ без credits — проверь expand=credits / Admin key"
     except httpx.HTTPError as e:
         out["error"] = str(e)
     except (ValueError, TypeError) as e:
         out["error"] = str(e)
     return out
+
+
+def _resolve_fal_billing_key() -> tuple[str | None, str | None]:
+    """Ключ для баланса fal: сначала Admin, потом обычный FAL_KEY.
+
+    Platform /account/billing требует scope ADMIN. Обычный API-ключ
+    годится для генерации, но баланс часто отдаёт 403.
+    """
+    admin = (
+        app_settings.resolve_key("fal_admin", "FAL_ADMIN_KEY")
+        or app_settings.resolve_key("fal_admin", "FAL_KEY_ADMIN")
+    )
+    if admin:
+        return admin, "fal_admin"
+    regular = (
+        app_settings.resolve_key("fal_lora", "FAL_KEY")
+        or app_settings.resolve_key("fal", "FAL_KEY")
+    )
+    if regular:
+        return regular, "fal_lora"
+    return None, None
 
 
 async def billing_snapshot() -> dict[str, Any]:
@@ -203,10 +245,24 @@ async def billing_snapshot() -> dict[str, Any]:
     )
     if or_key:
         accounts.append(await _openrouter_balance(or_key))
+    else:
+        accounts.append({
+            "provider": "openrouter",
+            "ok": False,
+            "error": "ключ не задан",
+        })
 
-    fal_key = app_settings.resolve_key("fal_lora", "FAL_KEY")
+    fal_key, fal_src = _resolve_fal_billing_key()
     if fal_key:
-        accounts.append(await _fal_balance(fal_key))
+        fal = await _fal_balance(fal_key)
+        fal["key_source"] = fal_src
+        accounts.append(fal)
+    else:
+        accounts.append({
+            "provider": "fal",
+            "ok": False,
+            "error": "ключ не задан (FAL_KEY / FAL_ADMIN_KEY)",
+        })
 
     remaining_parts = []
     for a in accounts:

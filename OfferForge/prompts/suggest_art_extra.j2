@@ -1,35 +1,56 @@
-You write ComfyUI / Flux positive-style producer notes for Playrix Icons Style A
-card art. Output goes into the art prompt EXTRA block (English only).
+You write short English theme notes for Playrix Icons card art EXTRA.
+
+Do NOT repeat the Style A lock — LoRA + style_lock already cover glossy 3D look.
+
+
 
 COLLECTION TITLE: {{ title }}
+
 {% if description %}
+
 SET DESCRIPTION:
+
 {{ description }}
+
 {% endif %}
 
-STYLE LOCK (keep this look — do not contradict):
+
+
+Style already applied elsewhere (do not copy):
+
 {{ style_lock() }}
 
-Negative concepts to avoid:
-{{ negative_prompt() }}
 
-TASK: write English art-extra notes for ALL cards in the set — same format as a
-ComfyUI Style A art-prompt lock (comma-separated phrases / short English lines).
+
+TASK: 1–3 short English lines — thematic mood / palette accent only
+
+(e.g. "Romance cinema mood: warm rose, cream, champagne gold").
+
+
 
 Rules:
-- ENGLISH ONLY (no Russian)
-- no JSON, no markdown headings, no code fences
-- 1 short paragraph OR 3–6 English lines (comma-heavy Style A phrasing is OK)
-- ALWAYS keep the Playrix glossy stylized 3D icon look from the STYLE LOCK above
-- add a light thematic mood / material accent from the collection title
-  (e.g. warmer rim, candy palette lean) — do NOT invent specific slot subjects
-- Background and staging MUST follow each card's composition category
-  (1 floating / 2 simple surface / 3 realistic surface / 4 full environment) —
-  do NOT force a blank plain studio void on every card
-- no text, logo, watermark, UI, people (except gold category 5 if ever enabled)
-- each call MUST be a DIFFERENT variation (mood / light / accent), same Style A
+
+- ENGLISH ONLY
+
+- no JSON, no markdown, no code fences
+
+- no full Style A lock, no composition-category lecture
+
+- no specific slot subjects
+
+- do NOT prescribe lighting setup, spotlights, beams, or stands/pedestals
+
+  (art.j2 already picks one lighting + one support option)
+
+- each call a DIFFERENT mood/palette take on the same theme
+
+
 
 {% if hint %}
-Rewrite this draft harder into Comfy Style A English (replace fully):
+
+Rewrite shorter — theme mood only:
+
 {{ hint }}
+
 {% endif %}
+

@@ -50,27 +50,91 @@ def _style_lock() -> str:
 
 @decorator("category_rule")
 def _category_rule(category: str) -> str:
-    """Правило композиции для категории 1..5 (из ТЗ) — жёсткий блок для art.j2."""
+    """Короткое правило композиции 1..5 для art.j2 — без повторов."""
     sb = style_bible()
     cats = sb.get("categories") or {}
     key = str(category)
     c = cats.get(key) or {}
     if not c:
         return ""
-    title = c.get("title_en") or c.get("title_ru") or f"category {key}"
-    lines = [f"COMPOSITION CATEGORY {key} — {title}:"]
+    title = c.get("title_en") or c.get("title_ru") or key
+    bits = [f"Cat {key} ({title})"]
     if c.get("object"):
-        lines.append(f"- Object: {c['object']}.")
+        bits.append(c["object"])
     if c.get("background"):
-        lines.append(f"- Background: {c['background']}.")
+        bits.append("BG: " + c["background"])
     if c.get("forbid"):
-        lines.append(f"- Do NOT: {c['forbid']}.")
-    lines.append(
-        "Follow THIS category exactly for staging and background. "
-        "Do not simplify every card into a floating icon on a blank studio void "
-        "unless this is category 1."
-    )
-    return "\n".join(lines)
+        bits.append("Avoid: " + c["forbid"])
+    return ". ".join(bits) + "."
+
+
+@decorator("category_rule_short")
+def _category_rule_short(category: str) -> str:
+    """Сжатое правило категории — меньше шума, сильнее subject."""
+    key = str(category or "1")
+    short = {
+        "1": "Cat 1: object floats mid-air, flat solid or soft-gradient backdrop, one object only",
+        "2": "Cat 2: object on a simple flat surface, plain vertical backdrop, one object only",
+        "3": "Cat 3: object on a realistic surface (wood/stone/fabric), simple vertical backdrop, one object only",
+        "4": "Cat 4: object in a realistic environment, stays the clear central focus, one hero only",
+        "5": "Cat 5: one or two characters in a simple narrative beat, cat-4 style environment",
+    }
+    return short.get(key, short["1"])
+
+
+def _pick_option(options: list[str], *, key: str, salt: str) -> str:
+    """Стабильный выбор одного варианта по ключу (subject+seed+salt)."""
+    if not options:
+        return ""
+    raw = f"{salt}|{key}".encode("utf-8", errors="ignore")
+    idx = sum(raw) % len(options)
+    return options[idx]
+
+
+@decorator("lighting_pick")
+def _lighting_pick(subject: str = "", seed: int | str = 0) -> str:
+    """Опциональный pick; art.j2 Style A обычно не вызывает."""
+    block = style_bible().get("lighting") or {}
+    options = list(block.get("options") or [])
+    if not options:
+        return "soft studio light"
+    return _pick_option(options[:5], key=f"{subject}|{seed}", salt="light")
+
+
+@decorator("support_pick")
+def _support_pick(category: str = "1", subject: str = "", seed: int | str = 0) -> str:
+    """Опциональный pick; категория задаёт композицию в category_rule."""
+    block = style_bible().get("supports") or {}
+    key = str(category or "1")
+    if key == "1":
+        return block.get("floating") or "hanging in the air, no surface under it"
+    if key == "5":
+        return "characters integrated in the scene, remain central"
+    pool_key = {
+        "2": "options_cat2",
+        "3": "options_cat3",
+        "4": "options_cat4",
+    }.get(key, "options_cat2")
+    options = list(block.get(pool_key) or block.get("options") or [])
+    if not options:
+        return "on a simple surface with soft contact shadow"
+    return _pick_option(options, key=f"{subject}|{seed}|{key}", salt="support")
+
+
+@decorator("lighting_rule")
+def _lighting_rule(subject: str = "", seed: int | str = 0) -> str:
+    """Одна короткая фраза света — без меню вариантов в промпте."""
+    chosen = _lighting_pick(subject, seed)
+    return f"light: {chosen}"
+
+
+@decorator("support_rule")
+def _support_rule(
+    category: str = "1", subject: str = "", seed: int | str = 0,
+) -> str:
+    """Одна короткая фраза опоры — без меню вариантов в промпте."""
+    chosen = _support_pick(category, subject, seed)
+    return f"support: {chosen}"
 
 
 @decorator("negative_prompt")
@@ -81,7 +145,13 @@ def _negative() -> str:
 
 @decorator("palette_words")
 def _palette_words(palette: list[str] | None) -> str:
-    return ", ".join(palette or []) or "vivid saturated colors"
+    """Палитра — мягкая подсказка цвета, не жёсткий запрет других оттенков."""
+    colors = ", ".join(palette or []) or "clear readable colors"
+    return (
+        f"{colors} "
+        "(accent hints only — keep the subject's own material colors; "
+        "do not force candy-pink recolor of the hero)"
+    )
 
 
 @decorator("as_json")
@@ -109,7 +179,7 @@ def _collection_rules() -> str:
 
 @decorator("category_table")
 def _category_table() -> str:
-    """Таблица категорий композиции из ТЗ (для collection_fill / brief)."""
+    """Composition category table for collection_fill / brief."""
     cats = style_bible().get("categories") or {}
     gold_on = bool((_collection().get("gold_cards") or {}).get("enabled"))
     keys = ("1", "2", "3", "4", "5") if gold_on else ("1", "2", "3", "4")
@@ -118,54 +188,76 @@ def _category_table() -> str:
         c = cats.get(key) or {}
         if not c:
             continue
-        title = c.get("title_ru") or c.get("title_en") or f"Категория {key}"
-        lines = [f"Категория {key} — {title}"]
+        title = c.get("title_en") or c.get("title_ru") or f"Category {key}"
+        lines = [f"Category {key} — {title}"]
         if c.get("object"):
-            lines.append(f"  объект: {c['object']}")
+            lines.append(f"  object: {c['object']}")
         if c.get("background"):
-            lines.append(f"  фон: {c['background']}")
+            lines.append(f"  background: {c['background']}")
         if c.get("forbid"):
-            lines.append(f"  нельзя: {c['forbid']}")
+            lines.append(f"  forbid: {c['forbid']}")
         blocks.append("\n".join(lines))
     header = (
-        "Категории композиции (из ТЗ). В каждом обычном наборе должны быть "
-        "категории 1–4; категория 5 — только золотые карточки, если они включены."
+        "Composition categories. Every normal set must include categories 1–4; "
+        "category 5 is gold cards only when enabled."
     )
     return header + "\n\n" + "\n\n".join(blocks)
 
 
 @decorator("rarity_distribution")
 def _rarity_distribution() -> str:
-    """Раскладка редкостей внутри набора, например 1,1,2,2,3,3,4,4,5,5."""
+    """Rarity layout inside a set, e.g. 1,1,2,2,3,3,4,4,5,5."""
     return ",".join(str(v) for v in _collection().get("rarity_distribution", []))
 
 
 @decorator("category_distribution")
 def _category_distribution() -> str:
-    """Сколько карточек какой категории должно быть в наборе."""
+    """How many cards per composition category in a set."""
     dist = _collection().get("category_distribution") or {}
-    return ", ".join(f"категория {k} — {v} шт" for k, v in dist.items())
+    return ", ".join(f"category {k}: {v}" for k, v in dist.items())
 
 
 @decorator("gold_policy")
 def _gold_policy() -> str:
-    """Разрешены ли золотые карточки и по каким правилам."""
+    """Whether gold cards are allowed and under which rules."""
     gold = _collection().get("gold_cards") or {}
     if not gold.get("enabled"):
-        return ("Золотые карточки в этом наборе НЕ используются. "
-                "Никаких персонажей и сюжетных сценок — только предметы.")
-    return "Золотые карточки разрешены:\n" + "\n".join(
+        return (
+            "Gold cards are NOT used in this set. "
+            "No characters or story scenes — objects only."
+        )
+    return "Gold cards are allowed:\n" + "\n".join(
         f"- {r}" for r in gold.get("rules", [])
     )
 
 
 @decorator("variant_strategy")
 def _variant_strategy() -> str:
-    """Как разводить 3–5 вариантов одного набора (из ТЗ)."""
+    """How to diverge 1–6 variants of one set."""
     rules = _collection().get("variant_strategy") or []
     return "\n".join(f"- {r}" for r in rules) if rules else (
-        "- Варианты отличаются творческим углом, не палитрой.\n"
-        "- Пересечение объектов между вариантами — не больше двух."
+        "- Variants differ by creative angle, not palette.\n"
+        "- Object overlap between variants — at most two."
+    )
+
+
+@decorator("output_lang_rules")
+def _output_lang_rules(lang: str = "en") -> str:
+    """Force generated prose/labels into one language; subjects stay English."""
+    code = (lang or "en").strip().lower()
+    if code.startswith("ru"):
+        return (
+            "OUTPUT LANGUAGE: Russian ONLY.\n"
+            "- All prose, display names, angles, concepts, notes: Russian.\n"
+            "- Image-model subjects: ALWAYS short English.\n"
+            "- Do not mix Russian and English in display names or prose."
+        )
+    return (
+        "OUTPUT LANGUAGE: English ONLY.\n"
+        "- All prose, display names, angles, concepts, notes: English.\n"
+        "- Image-model subjects: short English.\n"
+        "- Do not use Russian anywhere in the response "
+        "(except unavoidable proper nouns already in the title)."
     )
 
 

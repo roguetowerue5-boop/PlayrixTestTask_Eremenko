@@ -1,12 +1,15 @@
-Посмотри на картинку предмета коллекции мобильной игры.
+Look at this collectible object image from a mobile game.
 
-Придумай КОРОТКОЕ название для карточки — то, что игрок увидит на неймплейте.
+Invent a SHORT card name — what the player sees on the nameplate.
 
-Правила:
-- 1–2 слова на каждом языке
-- без кавычек и пояснений
-- русский — именительный падеж, как ярлык товара
-- английский — Title Case, предметно
+Rules:
+- 1–2 words per language
+- no quotes, no explanations
+- Russian: nominative, like a product label
+- English: Title Case, concrete object
 
-Верни строго JSON без markdown:
-{"name_ru": "Хлопушка", "name_en": "Clapperboard"}
+Return STRICT JSON with no markdown:
+{"name_ru": "Clapperboard", "name_en": "Clapperboard"}
+
+If the object is clearer in one language, still fill BOTH fields.
+Use Russian orthography for name_ru and English for name_en.

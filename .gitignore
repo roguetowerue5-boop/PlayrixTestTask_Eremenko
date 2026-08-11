@@ -38,3 +38,7 @@ PlayrixTestTask_Eremenko/
 
 # Local ComfyUI install (models/weights — too large for git)
 ComfyUI/
+
+# One-off Comfy prompt dumps (not part of OfferForge)
+cinema_backstage_*.txt
+comfy_prompts_*/

@@ -1,89 +1,103 @@
-Ты — арт-директор коллекционных наборов в мобильной игре.
+You are an art director for collectible card sets in a mobile game.
 
-НАЗВАНИЕ КОЛЛЕКЦИИ: {{ title }}
+COLLECTION TITLE: {{ title }}
 
 {% if brief %}
-РАЗОБРАННЫЙ БРИФ (из промпта brief — опирайся на него):
+PARSED BRIEF (from brief prompt — rely on it):
 {{ as_json(brief) }}
 {% else %}
-ОПИСАНИЕ / ПОЖЕЛАНИЯ:
+DESCRIPTION / WISHES:
 {{ description }}
 {% endif %}
 
-ЗАДАЧА: предложи ровно {{ n_variants }} РАЗНЫХ вариантов наполнения страницы.
-Каждый вариант — это цельный набор из {{ n_elements }} объектов-товаров для карточек.
+TASK: propose exactly {{ n_variants }} DIFFERENT set variants for the page.
+Each variant is a coherent set of {{ n_elements }} object-cards.
 
-КАК РАЗВОДИТЬ ВАРИАНТЫ (обязательно):
+HOW TO DIVERGE VARIANTS (required):
 {{ variant_strategy() }}
-- У каждого варианта свой «угол» (angle): другая подтема, эпоха, жанр или срез темы.
-- Пересечение subject между любыми двумя вариантами — не больше двух.
-- Не делай варианты «теми же предметами в другой палитре».
+- Each variant has its own angle: different sub-theme, era, genre, or slice of the theme.
+- Overlap of subjects between any two variants — at most two.
+- Do not make variants “the same objects in another palette”.
 
-ПРАВИЛА ПОДБОРА ОБЪЕКТОВ (для КАЖДОГО варианта):
+OBJECT RULES (for EVERY variant):
 {{ collection_rules() }}
+- Every subject must reflect the FULL meaning of title + description, not one broad word.
+  “Cinema Romance” → romantic cinema props / date attributes in cinema aesthetics,
+  not bare projection gear (reels, spotlights, rewinders) without a romantic slant.
 {% if brief and brief.must_include %}
-- Обязательно включить хотя бы в один из вариантов: {{ brief.must_include | join(", ") }}
+- Must include in at least one variant: {{ brief.must_include | join(", ") }}
 {% endif %}
 {% if brief and brief.must_avoid %}
-- Не использовать: {{ brief.must_avoid | join(", ") }}
+- Do not use: {{ brief.must_avoid | join(", ") }}
 {% endif %}
 
 {{ gold_policy() }}
 
-КАТЕГОРИИ КОМПОЗИЦИИ (обязательно из ТЗ — объект + фон):
-В каждом обычном наборе должны быть категории 1–4.
-Назначай category осмысленно под subject: не ставь «4» простому флакону
-и не ставь «1» объекту, которому нужен пол/сцена.
-Редкость (rarity/звёзды) НЕ связана с категорией композиции.
+COMPOSITION CATEGORIES (object + background):
+Every normal set must include categories 1–4.
+Assign category meaningfully to the subject: do not put “4” on a simple bottle,
+and do not put “1” on an object that needs a floor/scene.
+Rarity (stars) is NOT tied to composition category.
 
 {{ category_table() }}
 
-Распределение категорий в каждом варианте: {{ category_distribution() }}.
-Редкости в каждом варианте по порядку: {{ rarity_distribution() }}.
+Category distribution per variant: {{ category_distribution() }}.
+Rarities per variant in order: {{ rarity_distribution() }}.
 {% if brief and brief.palette %}
-Палитру вариантов держи близко к: {{ brief.palette | join(", ") }} — но концепты разные.
+Keep variant palettes close to: {{ brief.palette | join(", ") }} — but concepts must differ.
 {% endif %}
 {% if brief and brief.mood %}
-Настроение: {{ brief.mood | join(", ") }}.
+Mood: {{ brief.mood | join(", ") }}.
 {% endif %}
 {% if brief and brief.genre %}
-Жанр: {{ brief.genre }}.
+Genre: {{ brief.genre }}.
 {% endif %}
 
-Верни строго один JSON-объект без пояснений:
+{{ output_lang_rules(lang) }}
+
+Return STRICTLY one JSON object with no commentary:
 {
   "variants": [
     {
       "id": "v1",
       "title": "{{ title }}",
-      "angle": "коротко: чем этот вариант другой (подтема / жанр / эпоха)",
-      "concept": "одно предложение: чем набор цельный",
+      "angle": "short: how this variant differs (sub-theme / genre / era) — OUTPUT LANGUAGE",
+      "concept": "one sentence: what makes the set coherent — OUTPUT LANGUAGE",
       "palette": ["#RRGGBB", "#RRGGBB", "#RRGGBB"],
       "elements": [
         {
-          "subject": "короткое английское описание объекта для генератора картинок",
+          "subject": "short English object description for the image model",
           "category": "1",
           "rarity": 1,
-          "title_ru": "НАЗВАНИЕ НА КАРТОЧКЕ, 1-2 слова"
+          "title_ru": "CARD LABEL, 1-2 words in OUTPUT LANGUAGE"
         }
       ]
     }
   ]
 }
 
-В массиве variants ровно {{ n_variants }} объектов.
-В elements каждого варианта ровно {{ n_elements }} объектов.
+variants length must be exactly {{ n_variants }}.
+elements per variant must be exactly {{ n_elements }}.
 
-subject пиши по-английски и предметно: не «атмосфера хоррора», а «old film
-projector». Это идёт прямо в генератор изображений.
+subject is ALWAYS English and concrete: not “horror atmosphere”, but “old film projector”.
+It goes straight into the image generator.
 
-ТРЕБОВАНИЯ К subject:
-- Один цельный предмет (или, если category=5 и золото включено, 1–2 персонажа
-  в простой сценке), узнаваемый силуэтом. Не абстракция.
-- Никаких мелких фактур: меха, сеток, ворса, россыпи мелких деталей.
-- Не описывай фон, свет и тени в subject: их задаёт поле category
-  (1 — в воздухе, 2 — на простой плоскости, 3 — на реалистичной поверхности,
-  4 — в полном окружении, 5 — сюжетная сценка).
-- Два-шесть слов.
+subject requirements:
+- One clear object (or, if category=5 and gold enabled, 1–2 characters in a simple beat),
+  readable silhouette. No abstraction.
+- 3–8 English words naming the object + material/shape only.
+- The silhouette must match what the card IS. Name and subject must agree.
+- Prefer the distinctive shape of that object class (shield badge ≠ five-point star;
+  rotary phone ≠ candy blob; dossier folder ≠ open box of toys).
+- Do NOT put lighting recipes, shadows, atmosphere, palette hex, floor/table lectures,
+  viewing-angle instructions, or “no characters” into subject — art.j2 owns those.
+- Camera / binoculars / glasses ARE valid objects — describe the prop, not a photo.
+- Bad: “brass lamp casting sharp shadows on wood, high-contrast lighting, noir atmosphere”
+- Bad: “metallic star badge” for a detective badge (draws a candy star)
+- Good: “brass banker desk lamp amber glass shade”
+- Good: “gold detective shield badge with eagle crest”
+- Good: “chrome field binoculars with dual lenses”
+- Good: “vintage movie camera with twin film reels”
 
-title_ru — то, что игрок увидит на карточке: одно-два слова по-русски.
+title_ru = what the player sees on the card: 1–2 words in the OUTPUT LANGUAGE
+(field name is legacy; language follows OUTPUT LANGUAGE).

@@ -56,12 +56,15 @@ CATEGORIES = BASE_CATEGORIES
 # ---------------------------------------------------------------------------
 
 async def parse_brief(
-    reg: Registry, preset: Preset, theme: str, wishes: str, on_event=None
+    reg: Registry, preset: Preset, theme: str, wishes: str,
+    on_event=None, *, lang: str = "ru",
 ) -> Brief:
     """Разбирает заказ. При недоступной модели откатывается на заказ как есть,
     но обязательно сообщает об этом: молчаливая деградация выглядит как
     успешный этап и уводит диагностику в сторону."""
-    prompt = engine.render("brief", theme=theme, wishes=wishes)
+    code = (lang or "ru").strip().lower()
+    lang = "en" if code.startswith("en") else "ru"
+    prompt = engine.render("brief", theme=theme, wishes=wishes, lang=lang)
     variant = resolve_variant(preset, "brief")
     try:
         resp = await reg.text(variant, prompt, json_mode=True)
@@ -311,6 +314,7 @@ def build_prompt(element: ElementSpec, palette: list[str], extra: str = "",
         palette=palette,
         extra=extra,
         trigger=trigger,
+        seed=getattr(element, "seed", 0) or 0,
     ).strip()
 
 

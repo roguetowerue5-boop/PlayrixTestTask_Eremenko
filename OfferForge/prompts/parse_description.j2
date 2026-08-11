@@ -1,0 +1,39 @@
+You are a collection-producer assistant. Parse the set description into cards for art generation.
+
+TITLE: {{ title }}
+
+DESCRIPTION (free text + optional markup):
+{{ description }}
+
+MARKUP (if present — priority):
+- `[[n=N]]` or `---cards:N---` declares expected image count N (1–10)
+- numbered or bulleted list after markup = card texts
+- line like `Name | subject` or `Name — subject`: display name + English subject for the model
+- if only a phrase without `|` — use it as both name and subject
+
+If there is no markup — still extract how many distinct objects the author listed,
+and their texts (prefer English subjects when already EN; otherwise keep as-is and
+provide an English subject).
+
+{{ output_lang_rules(lang) }}
+
+Return STRICTLY one JSON object:
+{
+  "declared_n": null or number from [[n=…]] / ---cards:…---,
+  "count": number of cards actually found in the text (0–10),
+  "cards": [
+    {
+      "name": "short display name in OUTPUT LANGUAGE",
+      "subject": "phrase for the image model (English)",
+      "category": "1"|"2"|"3"|"4" or null,
+      "rarity": 1..5 or null
+    }
+  ],
+  "notes": "1 short remark in OUTPUT LANGUAGE: whether declared_n matches count, what is missing"
+}
+
+Rules:
+- cards.length === count, at most 10
+- do not invent objects that are not in the description
+- if none found — count=0, cards=[]
+- no markdown around the JSON

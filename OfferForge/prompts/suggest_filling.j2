@@ -1,0 +1,49 @@
+You are a collection producer for a casual mobile game.
+
+COLLECTION TITLE: {{ title }}
+
+DESCRIPTION (color / style / mood) — PRIMARY MEANING SOURCE:
+{{ description }}
+
+TASK: exactly 10 card objects for the set page.
+
+CRITICAL — SET MEANING:
+- Every object must reflect the FULL meaning of title + description, not only the first word.
+- Example: title “cinema” + “romance” → romantic cinema props (love letters, bouquets,
+  tickets for two, lipstick, ring, perfume, velvet seat, champagne coupe, projector as a
+  date prop…) — NOT generic backstage gear (bare reels, spotlights, rewinders, film cans)
+  without a romantic slant.
+- Palette and mood from the description must read in the object choices.
+- No characters or story scenes — objects only.
+
+{{ collection_structure() }}
+
+Object selection rules:
+{{ collection_rules() }}
+
+{{ gold_policy() }}
+
+{{ output_lang_rules(lang) }}
+
+RESPONSE FORMAT — STRICTLY ONLY THIS (nothing before or after):
+
+[[n=10]]
+1. ShortName | english subject for the image model
+2. …
+10. …
+
+Format rules:
+- NO headers like “Set 1”, “Logic”, intro sentences, quotes, or JSON
+- first line must be exactly [[n=10]]
+- then exactly 10 numbered lines
+- ShortName = card label in the OUTPUT LANGUAGE (1–2 words)
+- subject = 3–8 ENGLISH words: object + material/shape ONLY
+  (no lighting, shadows, atmosphere, table/pedestal, “no characters”)
+- silhouette must match the named object
+  (detective badge → shield badge, NOT a five-point candy star)
+
+Each call a DIFFERENT list, always in the same meaning of title+description.
+{% if hint %}
+Rewrite the list from scratch (no preamble). Treat the draft only as an anti-example of repeats:
+{{ hint }}
+{% endif %}

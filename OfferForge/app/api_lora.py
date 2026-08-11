@@ -51,7 +51,7 @@ class TrainBody(BaseModel):
 
 class ApplyBody(BaseModel):
     lora_url: str
-    scale: float = Field(1.0, ge=0.1, le=2.0)
+    scale: float = Field(0.9, ge=0.1, le=2.0)
     enable: bool = True
 
 
@@ -109,10 +109,16 @@ def _fal_lora_cfg() -> dict:
 @router.get("/status")
 async def lora_status() -> dict:
     key = _fal_key()
+    admin = (
+        app_settings.resolve_key("fal_admin", "FAL_ADMIN_KEY")
+        or app_settings.resolve_key("fal_admin", "FAL_KEY_ADMIN")
+    )
     jobs = _load_jobs()
     return {
         "has_key": bool(key),
         "key_mask": app_settings.mask(key),
+        "has_admin_key": bool(admin),
+        "admin_key_mask": app_settings.mask(admin),
         "trigger": TRIGGER,
         "dataset": _dataset_stats(),
         "fal_lora": _fal_lora_cfg(),
@@ -121,7 +127,8 @@ async def lora_status() -> dict:
         "jobs": (jobs.get("jobs") or [])[-8:],
         "hint": (
             "Ключ fal и OpenRouter работают вместе: brief/concept → OpenRouter, "
-            "render LoRA → fal, откат картинок → OpenRouter."
+            "render LoRA → fal, откат картинок → OpenRouter. "
+            "Баланс Fal в сайдбаре — Admin key (FAL_ADMIN_KEY)."
         ),
     }
 
@@ -133,6 +140,16 @@ async def save_fal_key(body: KeyBody) -> dict:
         raise HTTPException(400, "Вставь FAL_KEY")
     app_settings.save_secret("fal_lora", key)
     # Не включаем провайдер автоматически — сначала нужно обучить / подставить URL.
+    return {"ok": True, "key_mask": app_settings.mask(key)}
+
+
+@router.post("/admin-key")
+async def save_fal_admin_key(body: KeyBody) -> dict:
+    """Admin scope key для /v1/account/billing (остаток в сайдбаре)."""
+    key = (body.api_key or "").strip()
+    if not key:
+        raise HTTPException(400, "Вставь FAL_ADMIN_KEY (scope ADMIN)")
+    app_settings.save_secret("fal_admin", key)
     return {"ok": True, "key_mask": app_settings.mask(key)}
 
 

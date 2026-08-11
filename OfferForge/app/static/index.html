@@ -51,6 +51,7 @@
     margin-top:4px; color:var(--muted); font-size:11px;
   }
   nav .billing .brow b { color:var(--ink); font-weight:600; }
+  nav .billing .brow .dim { color:var(--muted); opacity:0.85; max-width:160px; text-align:right; }
   nav .billing .brefresh {
     margin-top:8px; font-size:11px; color:var(--muted); cursor:pointer;
     background:none; border:none; padding:0; text-decoration:underline;
@@ -67,7 +68,8 @@
 
   /* ---- элементы ---- */
   .card { background:var(--panel); border:1px solid var(--line);
-          border-radius:12px; padding:18px 20px; margin-bottom:16px; }
+          border-radius:12px; padding:18px 20px; margin-bottom:16px;
+          min-width:0; overflow-x:clip; }
   .card h3 { margin:0 0 4px; font-size:15px; display:flex; align-items:center;
              gap:10px; }
   .card .note { color:var(--muted); font-size:12px; margin:0 0 14px; }
@@ -80,10 +82,34 @@
     width:100%; background:var(--panel2); color:var(--ink);
     border:1px solid var(--line); border-radius:8px; padding:9px 11px; font:inherit; }
   input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); }
-  textarea { resize:vertical; }
-  .field { margin-bottom:14px; }
-  .row { display:flex; gap:12px; align-items:flex-end; }
-  .row > * { flex:1; }
+  textarea {
+    resize: vertical;
+    min-height: 64px;
+    max-height: 70vh;
+    max-width: 100%;
+    width: 100%;
+    overflow: auto;
+    field-sizing: content; /* Chromium: авто-высота по содержимому */
+  }
+  textarea.grow-ta {
+    min-height: 72px;
+  }
+  .seg {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .seg button.btn {
+    min-width: 40px; padding: 8px 12px;
+    pointer-events: auto; position: relative; z-index: 1;
+  }
+  .seg button.btn.on, .seg button.btn.pri {
+    background: var(--accent); color: var(--accent-ink);
+    border-color: var(--accent); font-weight: 600;
+  }
+  #fillVariantBar { position: relative; z-index: 2; }
+  #fillVariantBar .btn { pointer-events: auto; }
+  .field { margin-bottom:14px; min-width:0; }
+  .row { display:flex; gap:12px; align-items:flex-end; min-width:0; }
+  .row > * { flex:1; min-width:0; }
   .row .fit { flex:0 0 auto; }
 
   button.btn { background:var(--panel2); color:var(--ink); border:1px solid var(--line);
@@ -94,6 +120,9 @@
                    border-color:var(--accent); font-weight:600; }
   button.btn.danger { color:var(--bad); border-color:#452127; }
   button.btn:disabled { opacity:.45; cursor:default; }
+  button.btn.is-gated {
+    opacity:.45; cursor:not-allowed;
+  }
   .btns { display:flex; gap:8px; flex-wrap:wrap; }
 
   .pill { display:inline-block; font-size:11px; padding:2px 9px; border-radius:20px;
@@ -138,6 +167,25 @@
            box-shadow:0 8px 28px #0008; }
   .toast.bad { border-left-color:var(--bad); }
   .toast.ok { border-left-color:var(--ok); }
+  .modal-back {
+    position:fixed; inset:0; background:#000a; z-index:60;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal {
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    max-width:720px; width:100%; max-height:85vh; overflow:auto; padding:18px 20px;
+  }
+  .modal h3 { margin:0 0 10px; }
+  .modal pre {
+    white-space:pre-wrap; word-break:break-word; background:var(--panel2);
+    border:1px solid var(--line); border-radius:8px; padding:12px; font-size:12px;
+    max-height:50vh; overflow:auto;
+  }
+  .modal .meta-grid {
+    display:grid; grid-template-columns:120px 1fr; gap:6px 10px;
+    margin-bottom:12px; font-size:13px;
+  }
+  .modal .meta-grid span:nth-child(odd) { color:var(--muted); }
   .hide { display:none !important; }
 </style>
 </head>
@@ -176,61 +224,144 @@
     <!-- ================= НАПОЛНЕНИЕ ================= -->
     <section id="page-fill">
       <h2>Создание наполнения коллекции</h2>
-      <p class="sub">Название и описание → бриф → 10 объектов → арт.
-        Стиль тянется из <span class="mono">Icons</span> (референсы + опционально LoRA).
-        Можно сразу <b>Создать 10</b> или сначала <b>Придумать объекты</b>, а картинки — по одной.</p>
+      <p class="sub">Глава «Текст» (название → описание → наполнение) и глава «Картинки» разделены:
+        у каждой свой пресет моделей. Сначала перенеси текст в карточки, потом рисуй арт.</p>
 
+      <!-- ========== ГЛАВА: ТЕКСТ ========== -->
       <div class="card">
-        <div class="field"><label>Название коллекции</label>
-          <input id="fillTitle" value="Farming" placeholder="Coolness"></div>
-        <div class="field">
+        <h3>Глава · Текст</h3>
+        <p class="note">Модель для 🎲 описания / наполнения и «Придумать объекты». Картинки здесь не рисуются.</p>
+
+        <div class="field fill-step" data-step="1">
+          <label>1. Название коллекции</label>
+          <input id="fillTitle" value="" placeholder="Например: Кино · Романтика" autocomplete="off">
+          <div class="hint">Без названия нельзя сгенерировать описание и наполнение.</div>
+        </div>
+
+        <div class="field fill-step" data-step="2">
           <label style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-            <span>Описание коллекции</span>
-            <button type="button" class="btn" id="fillDescDice" title="Сгенерировать описание по названию"
+            <span>2. Описание коллекции</span>
+            <button type="button" class="btn" id="fillDescDice"
+              title="Нужно название коллекции"
               style="font-size:16px;line-height:1;padding:4px 10px;min-width:36px">🎲</button>
           </label>
-          <textarea id="fillDesc" style="min-height:100px"
-            placeholder="Тема, эпоха, настроение, что обязательно включить или избежать."></textarea>
-          <div class="hint">🎲 — промпт <span class="mono">suggest_description</span> + название</div>
+          <textarea id="fillDesc" class="grow-ta" style="min-height:88px"
+            placeholder="Цвет, стиль, настроение, палитра, чего избегать…&#10;Например: тёплая романтика, кремовый и розовый, soft gold, без хоррора."></textarea>
+          <div class="hint" id="fillDescGateHint">
+            Задаёт цвет и стиль набора. 🎲 пишет описание по названию — кнопка неактивна, пока нет названия.
+          </div>
         </div>
-        <div class="field">
+
+        <div class="field fill-step" data-step="3">
           <label style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-            <span>Доп. к генерации арта</span>
-            <button type="button" class="btn" id="fillArtExtraDice" title="Сгенерировать указания к арту"
+            <span>3. Наполнение коллекции</span>
+            <button type="button" class="btn" id="fillFillingDice"
+              title="Нужны название и описание"
               style="font-size:16px;line-height:1;padding:4px 10px;min-width:36px">🎲</button>
           </label>
-          <textarea id="fillArtExtra" style="min-height:64px"
-            placeholder="Общие правки для всех картинок: стиль, ракурс, чего избегать…"></textarea>
-          <div class="hint">Уходит в <span class="mono">art</span> как Comfy Style A · 🎲 — английский art-prompt lock</div>
+          <textarea id="fillFilling" class="grow-ta" style="min-height:120px"
+            placeholder="Список предметов для карточек…&#10;&#10;[[n=10]]&#10;1. Письмо | glossy sealed love letter&#10;2. Букет | chunky candy-pink rose bouquet"></textarea>
+          <div class="hint" id="fillFillingGateHint">
+            Объекты набора. 🎲 думает по названию + описанию — не работает, пока оба не заданы.
+            Разметка: <span class="mono">[[n=10]]</span>
+            <button type="button" class="btn" id="fillParseBtn" style="margin-left:8px;padding:2px 10px">Проверить разметку</button>
+          </div>
+          <div id="fillParsePreview" class="hide" style="margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)"></div>
         </div>
+
         <div class="row">
-          <div class="field"><label>Пресет моделей</label>
-            <select id="fillPreset"></select>
-            <div class="hint" id="fillPresetNote">Роли: brief → concept → render</div></div>
-          <div class="field" style="flex:0 0 140px"><label>Параллельно</label>
-            <input id="fillConc" type="number" min="1" max="8" value="3"></div>
-          <div class="field" style="flex:0 0 160px"><label>Вариантов набора</label>
-            <input id="fillVariantsN" type="number" min="3" max="5" value="3">
-            <div class="hint">ТЗ: 3–5 углов</div></div>
+          <div class="field"><label>Пресет текста</label>
+            <select id="fillTextPreset"></select>
+            <div class="hint" id="fillTextPresetNote">brief / concept · OpenRouter</div></div>
+          <div class="field" style="flex:0 0 160px"><label>Язык текста</label>
+            <input type="hidden" id="fillTextLang" value="ru">
+            <div class="seg" id="fillTextLangSeg" role="group" aria-label="Язык текста">
+              <button type="button" class="btn pri" data-v="ru">RU</button>
+              <button type="button" class="btn" data-v="en">EN</button>
+            </div>
+            <div class="hint">🎲 и «Придумать объекты»</div></div>
+          <div class="field" style="flex:0 0 200px"><label>Вариантов набора</label>
+            <input type="hidden" id="fillVariantsN" value="1">
+            <div class="seg" id="fillVariantsSeg" role="group" aria-label="Вариантов набора"></div>
+            <div class="hint">сколько разных списков придумать → потом выбрать какой переносить</div></div>
         </div>
+
         <div class="btns">
-          <button class="btn pri" id="fillGo">Создать 10 карточек</button>
-          <button class="btn" id="fillPlan">Придумать объекты</button>
-          <button class="btn" id="fillNextOne" disabled>Сгенерировать следующую</button>
-          <button class="btn" id="fillToAssemble" disabled>Перенести в сборку</button>
+          <button class="btn pri" id="fillTransferText"
+            title="Нужны название, описание и наполнение">Перенести текст</button>
+          <button class="btn" id="fillPlan"
+            title="Нужны название и описание коллекции">Придумать объекты</button>
+          <button class="btn" id="fillManualToggle">Задать объекты вручную</button>
+        </div>
+        <div class="hint" id="fillGateBanner" style="margin-top:8px"></div>
+        <div id="fillManualPanel" class="hide" style="margin-top:12px;padding:12px;border:1px dashed var(--line);border-radius:8px">
+          <div class="field" style="margin-bottom:8px">
+            <label>Свои предметы (до 10 строк)</label>
+            <textarea id="fillManualList" class="grow-ta" style="min-height:140px;font-family:ui-monospace,Consolas,monospace"
+              placeholder="По одному на строку. Варианты:&#10;glossy sealed love letter&#10;Письмо | glossy sealed love letter&#10;Письмо — glossy sealed love letter"></textarea>
+            <div class="hint">Можно вставить Subject из брифа. Cat/rarity по умолчанию: 1×3, 2×3, 3×2, 4×2 и ★1–5.</div>
+          </div>
+          <div class="btns">
+            <button class="btn pri" id="fillManualApply">Создать карточки из списка</button>
+            <button class="btn" id="fillManualEmpty">Пустые 10 слотов</button>
+          </div>
         </div>
         <div id="fillVariantBar" class="btns" style="margin-top:10px"></div>
         <div class="hint" id="fillVariantHint" style="margin-top:6px"></div>
         <div class="hint" style="margin-top:8px">
-          <b>Придумать объекты</b> — 3–5 вариантов списка (без картинок); выбери вариант, потом арт.
-          <b>Создать 10</b> — придумывает варианты и сразу рисует активный (первый).
+          <b>Варианты набора</b> — AI придумывает N разных списков объектов; кнопки ниже подставляют выбранный список в п.3.
+          <b>Перенести текст</b> — берёт текущий п.3 в карточки (без картинок).
+        </div>
+        <div class="hint" id="fillTextStatus" style="margin-top:10px"></div>
+        <div class="log" id="fillLog" style="margin-top:10px"><div class="dim">Ожидание текста…</div></div>
+      </div>
+
+      <!-- ========== ГЛАВА: КАРТИНКИ ========== -->
+      <div class="card">
+        <h3>Глава · Картинки</h3>
+        <p class="note">Модель для рендера артов. Сначала перенеси текст из главы выше.</p>
+
+        <div class="field">
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span>Доп. mood к арту (EN, опционально)</span>
+            <button type="button" class="btn" id="fillArtExtraDice"
+              title="Нужны название и описание"
+              style="font-size:16px;line-height:1;padding:4px 10px;min-width:36px">🎲</button>
+          </label>
+          <textarea id="fillArtExtra" class="grow-ta" style="min-height:56px"
+            placeholder="Romance cinema mood: warm rose, cream, champagne gold…"></textarea>
+          <div class="hint">Короткий English mood для LoRA. Style A уже в style_lock.</div>
+        </div>
+
+        <div class="row">
+          <div class="field"><label>Пресет картинок</label>
+            <select id="fillImagePreset"></select>
+            <div class="hint" id="fillImagePresetNote">render · Flux / LoRA</div></div>
+          <div class="field" style="flex:0 0 180px"><label>Вариантов картинки</label>
+            <input type="hidden" id="fillImgVariantsN" value="1">
+            <div class="seg" id="fillImgVariantsSeg" role="group" aria-label="Вариантов картинки"></div>
+            <div class="hint">на один слот (разные seed)</div></div>
+          <div class="field" style="flex:0 0 180px"><label>Параллельно</label>
+            <input type="hidden" id="fillConc" value="3">
+            <div class="seg" id="fillConcSeg" role="group" aria-label="Параллельно"></div>
+            <div class="hint">одновременных слотов</div></div>
+        </div>
+
+        <div class="btns">
+          <button class="btn pri" id="fillGo" disabled
+            title="Сначала перенеси текст в карточки">Сгенерировать арты</button>
+          <button class="btn" id="fillNextOne" disabled>Сгенерировать следующую</button>
+          <button class="btn" id="fillToAssemble" disabled>Перенести в сборку</button>
         </div>
         <div class="hint" id="fillStatus" style="margin-top:10px"></div>
-        <div class="log" id="fillLog" style="margin-top:10px"><div class="dim">Ожидание запуска…</div></div>
       </div>
 
       <div class="card">
-        <h3>Карточки <span class="pill" id="fillConceptPill"></span></h3>
+        <div class="head" style="align-items:center;margin-bottom:12px">
+          <h3 style="margin:0">Карточки <span class="pill" id="fillConceptPill"></span></h3>
+          <button type="button" class="btn" id="fillExportPack" disabled
+            title="Сохранить все PNG в выбранную папку (или скачать ZIP)">Выгрузить пак</button>
+        </div>
         <div class="grid" id="fillGrid"><div class="empty">Пока пусто</div></div>
       </div>
     </section>
@@ -269,12 +400,22 @@
 
       <div class="card">
         <h3>1. Ключ fal.ai</h3>
-        <p class="note">Из кабинета fal → API Keys. Хранится в <span class="mono">config/secrets.json</span> как провайдер <span class="mono">fal_lora</span>.</p>
+        <p class="note">Из кабинета fal → API Keys. Генерация — обычный API key
+          (<span class="mono">fal_lora</span>). Баланс в сайдбаре — Admin key
+          (<span class="mono">fal_admin</span> / <span class="mono">FAL_ADMIN_KEY</span>),
+          endpoint <span class="mono">/v1/account/billing</span> требует scope ADMIN.</p>
         <div class="row">
-          <div class="field"><label>FAL_KEY</label>
-            <input id="loraKey" type="password" placeholder="fal-…" autocomplete="off"></div>
+          <div class="field"><label>FAL_KEY (API)</label>
+            <input id="loraKey" type="password" placeholder="key_id:key_secret" autocomplete="off"></div>
           <div class="fit" style="padding-bottom:14px">
-            <button class="btn pri" id="loraSaveKey">Сохранить ключ</button>
+            <button class="btn pri" id="loraSaveKey">Сохранить</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label>FAL_ADMIN_KEY (баланс)</label>
+            <input id="loraAdminKey" type="password" placeholder="Admin scope key" autocomplete="off"></div>
+          <div class="fit" style="padding-bottom:14px">
+            <button class="btn" id="loraSaveAdminKey">Сохранить Admin</button>
           </div>
         </div>
         <div class="hint" id="loraKeyStatus">ключ не сохранён</div>
@@ -414,6 +555,19 @@
 </div>
 
 <div class="toast hide" id="toast"></div>
+<div id="fillPromptModal" class="modal-back hide" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="head" style="margin-bottom:8px">
+      <h3 id="fillPromptTitle" style="margin:0">Промпт запроса</h3>
+      <button type="button" class="btn" id="fillPromptClose">Закрыть</button>
+    </div>
+    <div class="meta-grid" id="fillPromptMeta"></div>
+    <label class="hint">Positive / полный промпт</label>
+    <pre id="fillPromptBody"></pre>
+    <label class="hint" style="margin-top:10px;display:block">Negative</label>
+    <pre id="fillPromptNeg" class="hide"></pre>
+  </div>
+</div>
 
 <script>
 const $ = s => document.querySelector(s);
@@ -463,9 +617,8 @@ function renderBilling(d) {
   }
   const wrap = $("#navRemainWrap");
   const accounts = NAV_BILLING.accounts || [];
-  const okAccounts = accounts.filter(a => a && a.ok);
   if (!wrap) return;
-  if (!okAccounts.length && NAV_BILLING.remaining_usd == null) {
+  if (!accounts.length && NAV_BILLING.remaining_usd == null) {
     wrap.hidden = true;
     return;
   }
@@ -474,16 +627,26 @@ function renderBilling(d) {
   $("#navRemain").textContent = rem == null ? "—" : `$${Number(rem).toFixed(2)}`;
   const box = $("#navAccounts");
   if (!box) return;
-  box.innerHTML = okAccounts.map(a => {
-    const name = a.provider === "fal" ? "fal.ai" : "OpenRouter";
+  const providerName = (p) => {
+    if (p === "fal") return "Fal AI";
+    if (p === "openrouter") return "OpenRouter";
+    return p || "API";
+  };
+  box.innerHTML = accounts.map(a => {
+    const name = providerName(a.provider);
+    if (!a || !a.ok) {
+      const err = (a && a.error) ? String(a.error) : "нет данных";
+      return `<div class="brow"><span>${name}</span><span class="dim" title="${colEsc(err)}">${colEsc(err.length > 72 ? err.slice(0, 72) + "…" : err)}</span></div>`;
+    }
     let left = a.account_remaining_usd ?? a.limit_remaining_usd ?? a.remaining_usd;
     let used = a.account_usage_usd ?? a.usage_usd;
     const bits = [];
     if (left != null) bits.push(`остаток <b>$${Number(left).toFixed(2)}</b>`);
     if (used != null) bits.push(`списано <b>$${Number(used).toFixed(2)}</b>`);
-    if (!bits.length) return "";
+    if (a.username) bits.push(colEsc(String(a.username)));
+    if (!bits.length) bits.push("ok");
     return `<div class="brow"><span>${name}</span><span>${bits.join(" · ")}</span></div>`;
-  }).filter(Boolean).join("");
+  }).join("");
 }
 
 async function refreshBilling(silent) {
@@ -534,6 +697,7 @@ function show(page) {
 /* ================= НАПОЛНЕНИЕ ================= */
 const FILL = {
   run_id: null,
+  plan_run_id: null,
   palette: [],
   concept: "",
   angle: "",
@@ -542,7 +706,7 @@ const FILL = {
   cost_usd: 0,
   cards: Array.from({length: 10}, (_, i) => ({
     slot: i + 1, name: "", subject: "", category: "1", rarity: 1,
-    url: null, file: null, error: null, extra: "",
+    url: null, file: null, error: null, extra: "", versions: [],
   })),
 };
 
@@ -563,22 +727,79 @@ function fillDrawVariants() {
       : `Вариант ${i + 1}`;
     return `<button type="button" class="btn ${on}" data-variant="${i}">${label}</button>`;
   }).join("");
-  $$("#fillVariantBar [data-variant]").forEach(b => {
-    b.onclick = () => fillSelectVariant(+b.dataset.variant);
-  });
+  if (!bar.dataset.bound) {
+    bar.dataset.bound = "1";
+    bar.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-variant]");
+      if (!btn || !bar.contains(btn)) return;
+      e.preventDefault();
+      fillSelectTextVariant(+btn.dataset.variant);
+    });
+  }
   const cur = vars[FILL.active] || {};
   if (hint) {
     const subs = (cur.subjects || []).filter(Boolean).slice(0, 5).join(" · ");
     hint.innerHTML =
-      `<b>Вариант ${FILL.active + 1}/${vars.length}</b>` +
+      `<b>В п.3 сейчас вариант ${FILL.active + 1}/${vars.length}</b>` +
       (cur.concept ? ` — ${colEsc(cur.concept)}` : "") +
-      (subs ? `<div class="dim" style="margin-top:4px">${colEsc(subs)}…</div>` : "");
+      (subs ? `<div class="dim" style="margin-top:4px">${colEsc(subs)}…</div>` : "") +
+      `<div class="dim" style="margin-top:4px">Кликни вариант → подставить список в наполнение, затем «Перенести текст»</div>`;
   }
-  $("#fillConceptPill").textContent = cur.concept || FILL.concept || "";
+  const pill = $("#fillConceptPill");
+  if (pill) pill.textContent = cur.concept || FILL.concept || "";
+}
+
+function fillApplyFillingFromVariant(index) {
+  const v = (FILL.variants || [])[index];
+  if (!v) return false;
+  let text = (v.filling || "").trim();
+  if (!text && Array.isArray(v.subjects) && v.subjects.length) {
+    const lines = ["[[n=10]]"];
+    v.subjects.forEach((s, i) => {
+      if (!s) return;
+      lines.push(`${i + 1}. ${s} | ${s}`);
+    });
+    text = lines.join("\n");
+  }
+  if (!text) return false;
+  const el = $("#fillFilling");
+  if (el) {
+    el.value = text;
+    autoGrowTextarea(el);
+  }
+  FILL.active = index;
+  FILL.concept = v.concept || FILL.concept || "";
+  FILL.angle = v.angle || "";
+  FILL.palette = v.palette || FILL.palette || [];
+  fillSyncGates();
+  return true;
+}
+
+async function fillSelectTextVariant(index) {
+  const vars = FILL.variants || [];
+  if (!vars.length || index < 0 || index >= vars.length) return;
+  if (!fillApplyFillingFromVariant(index)) {
+    return toast("У этого варианта нет списка объектов", "bad");
+  }
+  fillDrawVariants();
+  // Если план уже на диске — синхронизируем active (карточки не трогаем, пока не перенесли).
+  if (FILL.plan_run_id) {
+    try {
+      await api("/api/collection/fill/select-variant", {
+        method: "POST",
+        body: { run_id: FILL.plan_run_id, variant_index: index },
+      });
+    } catch (_) { /* текст уже в п.3 */ }
+  }
+  fillLog(`В п.3 подставлен вариант ${index + 1}` + (FILL.angle ? ` — ${FILL.angle}` : ""), "ok");
+  toast(`Вариант ${index + 1} → наполнение`, "ok");
 }
 
 async function fillSelectVariant(index) {
-  if (!FILL.run_id) return;
+  // Переключение варианта уже созданных карточек (глава «Картинки»).
+  if (!FILL.run_id) {
+    return fillSelectTextVariant(index);
+  }
   if (index === FILL.active) {
     fillDrawVariants();
     return;
@@ -608,8 +829,9 @@ function fillLog(text, cls) {
 
 function fillDraw() {
   const cards = FILL.cards;
-  if (!cards.some(c => c.url || c.error || c.name || c.subject)) {
+  if (!cards.some(c => c.url || c.error || c.name || c.subject || FILL.run_id)) {
     $("#fillGrid").innerHTML = '<div class="empty">Пока пусто</div>';
+    fillSyncExportPackBtn();
     return;
   }
   $("#fillGrid").innerHTML = cards.map(c => {
@@ -618,45 +840,96 @@ function fillDraw() {
     const artBtn = hasArt
       ? `<button class="btn" data-regen="${c.slot}" ${canArt ? "" : "disabled"}>Перегенерировать</button>`
       : `<button class="btn pri" data-gen-one="${c.slot}" ${canArt ? "" : "disabled"}>Сгенерировать</button>`;
+    const hardBtn = FILL.run_id
+      ? `<button class="btn" data-hard-reset="${c.slot}" title="Удалить арт, версии файлов и доп. этого слота">Hard reset</button>`
+      : "";
+    const catOpts = [1, 2, 3, 4, 5].map(n =>
+      `<option value="${n}" ${String(c.category) === String(n) ? "selected" : ""}>${n}</option>`
+    ).join("");
+    const rarOpts = [1, 2, 3, 4, 5].map(n =>
+      `<option value="${n}" ${+c.rarity === n ? "selected" : ""}>★${n}</option>`
+    ).join("");
     return `
     <div class="card" data-fill-slot="${c.slot}" style="padding:12px;margin:0">
       <div class="head" style="margin-bottom:8px">
         <div style="flex:1">
-          <h3 style="margin:0">Слот ${c.slot}: ${colEsc(c.name || "…")}</h3>
-          <div class="hint">★${c.rarity} · cat ${c.category}</div>
+          <h3 style="margin:0">Слот ${c.slot}</h3>
         </div>
-        ${artBtn}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          ${hardBtn}
+          ${artBtn}
+        </div>
       </div>
+      <div class="field" style="margin-bottom:8px"><label>Имя</label>
+        <input data-f="name" value="${colEsc(c.name || "")}" placeholder="Письмо"></div>
       <div class="field" style="margin-bottom:8px"><label>Subject (для модели)</label>
-        <input data-f="subject" value="${colEsc(c.subject || "")}" placeholder="old film projector"></div>
+        <input data-f="subject" value="${colEsc(c.subject || "")}"
+               placeholder="gold detective shield badge"></div>
+      <div class="row" style="gap:8px;margin-bottom:8px">
+        <div class="field" style="flex:1;margin:0"><label>Категория</label>
+          <select data-f="category">${catOpts}</select></div>
+        <div class="field" style="flex:1;margin:0"><label>Редкость</label>
+          <select data-f="rarity">${rarOpts}</select></div>
+      </div>
       <div class="field" style="margin-bottom:8px"><label>Доп. к генерации</label>
         <input data-f="extra" value="${colEsc(c.extra || "")}"
-               placeholder="сделай ярче / без фона / крупнее объект…"></div>
+               placeholder="optional EN notes for this slot only…"></div>
       ${c.url
-        ? `<img src="${c.url}" alt="${colEsc(c.name)}" style="width:100%;border-radius:8px;border:1px solid var(--line)">`
+        ? `<img src="${c.url}" alt="${colEsc(c.name)}" style="width:100%;border-radius:8px;border:1px solid var(--line)">
+           ${(c.versions && c.versions.length > 1)
+             ? `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap" data-ver-bar="${c.slot}">
+                  ${c.versions.map((v, vi) => {
+                    const on = v.url === c.url || v.version === c.version;
+                    return `<button type="button" class="btn ${on ? "pri" : ""}" data-pick-ver="${c.slot}" data-vi="${vi}"
+                      style="padding:0;width:52px;height:52px;overflow:hidden;border-radius:6px"
+                      title="Вариант картинки ${vi + 1}"><img src="${v.url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></button>`;
+                  }).join("")}
+                </div>
+                <div class="hint" style="margin-top:4px">выбери картинку из ${c.versions.length} вариантов</div>`
+             : ""}
+           <div class="btns" style="margin-top:8px">
+             <button type="button" class="btn" data-prompt="${c.slot}"
+               ${c.prompt ? "" : "disabled"}>Детальный просмотр промпта</button>
+             <button type="button" class="btn pri" data-upscale="${c.slot}">Улучшить визуал</button>
+             <button type="button" class="btn" data-export="${c.slot}"
+               title="Сохранить PNG в папку или скачать">Выгрузить</button>
+           </div>
+           ${c.upscaled ? `<div class="hint" style="margin-top:4px">апскейл ${c.width || 2048}×${c.height || 2048} · ESRGAN</div>` : ""}`
         : `<div class="empty" style="padding:40px 0">${c.error
             ? `<span class="pill bad">${colEsc(c.error)}</span>`
-            : (c.subject ? "арт ещё не сгенерирован" : "ожидание…")}</div>`}
+            : (c.subject ? "арт ещё не сгенерирован" : "укажи subject…")}</div>`}
     </div>`;
   }).join("");
   $$("#fillGrid [data-regen]").forEach(b => b.onclick = () => fillRegen(+b.dataset.regen));
   $$("#fillGrid [data-gen-one]").forEach(b => b.onclick = () => fillGenOne(+b.dataset.genOne));
-  $$("#fillGrid [data-f=\"subject\"]").forEach(inp => {
-    inp.onchange = inp.onblur = () => {
+  $$("#fillGrid [data-hard-reset]").forEach(b => b.onclick = () => fillHardReset(+b.dataset.hardReset));
+  $$("#fillGrid [data-prompt]").forEach(b => b.onclick = () => fillShowPrompt(+b.dataset.prompt));
+  $$("#fillGrid [data-upscale]").forEach(b => b.onclick = () => fillUpscale(+b.dataset.upscale));
+  $$("#fillGrid [data-export]").forEach(b => b.onclick = () => fillExportSlot(+b.dataset.export));
+  $$("#fillGrid [data-pick-ver]").forEach(b => b.onclick = () => fillPickArtVersion(+b.dataset.pickVer, +b.dataset.vi));
+  fillSyncExportPackBtn();
+  const bindCardField = (attr, key, after) => {
+    $$(`#fillGrid [data-f="${attr}"]`).forEach(inp => {
+      const sync = () => {
+        const slot = +inp.closest("[data-fill-slot]").dataset.fillSlot;
+        FILL.cards[slot - 1][key] = inp.value.trim();
+        if (after) after();
+      };
+      inp.oninput = sync;
+      inp.onchange = sync;
+      inp.onblur = sync;
+    });
+  };
+  bindCardField("name", "name");
+  bindCardField("subject", "subject", fillSyncNextBtn);
+  bindCardField("category", "category");
+  bindCardField("rarity", "rarity", () => {
+    $$("#fillGrid [data-f=\"rarity\"]").forEach(inp => {
       const slot = +inp.closest("[data-fill-slot]").dataset.fillSlot;
-      FILL.cards[slot - 1].subject = inp.value.trim();
-      fillSyncNextBtn();
-    };
+      FILL.cards[slot - 1].rarity = Math.max(1, Math.min(5, +inp.value || 1));
+    });
   });
-  $$("#fillGrid [data-f=\"extra\"]").forEach(inp => {
-    const sync = () => {
-      const slot = +inp.closest("[data-fill-slot]").dataset.fillSlot;
-      FILL.cards[slot - 1].extra = inp.value.trim();
-    };
-    inp.oninput = sync;
-    inp.onchange = sync;
-    inp.onblur = sync;
-  });
+  bindCardField("extra", "extra");
   fillSyncNextBtn();
 }
 
@@ -666,6 +939,135 @@ function fillSyncNextBtn() {
   const next = FILL.cards.find(c => c.subject && !c.url && !c.error);
   btn.disabled = !(FILL.run_id && next);
 }
+
+function fillSyncExportPackBtn() {
+  const btn = $("#fillExportPack");
+  if (!btn) return;
+  btn.disabled = !(FILL.run_id && FILL.cards.some(c => c.url));
+}
+
+function fillExportSafeName(name, slot) {
+  const raw = String(name || "").trim() || `slot_${String(slot).padStart(2, "0")}`;
+  return raw.replace(/[<>:"/\\|?*\x00-\x1f]+/g, "_").replace(/\s+/g, "_").replace(/^[._]+|[._]+$/g, "").slice(0, 80)
+    || `slot_${String(slot).padStart(2, "0")}`;
+}
+
+function fillExportFileName(card) {
+  const slot = card.slot || 1;
+  return `${String(slot).padStart(2, "0")}_${fillExportSafeName(card.name, slot)}.png`;
+}
+
+function fillTriggerDownload(blob, filename) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+async function fillPickExportDir() {
+  if (typeof window.showDirectoryPicker !== "function") return null;
+  try {
+    return await window.showDirectoryPicker({ mode: "readwrite" });
+  } catch (e) {
+    if (e && (e.name === "AbortError" || e.name === "NotAllowedError")) return undefined;
+    return null;
+  }
+}
+
+async function fillWriteBlobToDir(dirHandle, filename, blob) {
+  const fh = await dirHandle.getFileHandle(filename, { create: true });
+  const w = await fh.createWritable();
+  await w.write(blob);
+  await w.close();
+}
+
+async function fillFetchCardBlob(card) {
+  const src = card.file
+    ? `/runs/${card.file}?t=${card.version || Date.now()}`
+    : card.url;
+  if (!src) throw new Error("нет url картинки");
+  const r = await fetch(src, { cache: "no-store" });
+  if (!r.ok) throw new Error(`не скачать арт (HTTP ${r.status})`);
+  return r.blob();
+}
+
+async function fillExportSlot(slot) {
+  const card = FILL.cards[slot - 1];
+  if (!card?.url) return toast("Сначала сгенерируй картинку", "bad");
+  const btn = $(`#fillGrid [data-export="${slot}"]`);
+  if (btn) btn.disabled = true;
+  fillLog(`Выгрузка слота ${slot}…`, "dim");
+  try {
+    const blob = await fillFetchCardBlob(card);
+    const fname = fillExportFileName(card);
+    const dir = await fillPickExportDir();
+    if (dir === undefined) {
+      fillLog(`Слот ${slot}: выгрузка отменена`, "dim");
+      return;
+    }
+    if (dir) {
+      await fillWriteBlobToDir(dir, fname, blob);
+      fillLog(`Слот ${slot}: сохранён ${fname}`, "ok");
+      toast(`Слот ${slot} → папка`, "ok");
+    } else {
+      fillTriggerDownload(blob, fname);
+      fillLog(`Слот ${slot}: скачивание ${fname}`, "ok");
+      toast(`Слот ${slot} скачан`, "ok");
+    }
+  } catch (e) {
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function fillExportPack() {
+  if (!FILL.run_id) return toast("Сначала создай набор", "bad");
+  const cards = FILL.cards.filter(c => c.url);
+  if (!cards.length) return toast("Нет картинок для выгрузки", "bad");
+  const btn = $("#fillExportPack");
+  if (btn) btn.disabled = true;
+  fillLog(`Выгрузка пака (${cards.length} шт.)…`, "dim");
+  try {
+    const dir = await fillPickExportDir();
+    if (dir === undefined) {
+      fillLog("Выгрузка пака отменена", "dim");
+      return;
+    }
+    if (dir) {
+      let n = 0;
+      for (const card of cards) {
+        const blob = await fillFetchCardBlob(card);
+        await fillWriteBlobToDir(dir, fillExportFileName(card), blob);
+        n += 1;
+      }
+      fillLog(`Пак: сохранено ${n} файлов в папку`, "ok");
+      toast(`Пак · ${n} PNG в папку`, "ok");
+    } else {
+      const r = await fetch(
+        `/api/collection/fill/export/pack?run_id=${encodeURIComponent(FILL.run_id)}`,
+        { cache: "no-store" },
+      );
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        throw new Error(data.detail || `HTTP ${r.status}`);
+      }
+      const blob = await r.blob();
+      fillTriggerDownload(blob, `${FILL.run_id}_pack.zip`);
+      fillLog(`Пак: скачан ZIP (${cards.length} шт.)`, "ok");
+      toast("Пак скачан как ZIP", "ok");
+    }
+  } catch (e) {
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+  } finally {
+    fillSyncExportPackBtn();
+  }
+}
+
+$("#fillExportPack") && ($("#fillExportPack").onclick = () => fillExportPack());
 
 function fillApplyPlan(d) {
   FILL.run_id = d.run_id;
@@ -693,105 +1095,368 @@ function fillApplyPlan(d) {
   fillDrawVariants();
   fillDraw();
   $("#fillToAssemble").disabled = !FILL.cards.some(c => c.url);
+  fillSyncExportPackBtn();
   fillSyncNextBtn();
 }
 
 async function loadFill() {
   fillFillPresets();
+  fillInitSegControls();
+  fillBindGrowTextareas();
+  fillSyncGates();
   fillDraw();
 }
 
+function fillInitSegControls() {
+  const bind = (segId, inputId, values) => {
+    const seg = $(segId);
+    const input = $(inputId);
+    if (!seg || !input) return;
+    const cur = String(+input.value || values[0]);
+    seg.innerHTML = values.map(n =>
+      `<button type="button" class="btn ${String(n) === cur ? "pri" : ""}" data-v="${n}">${n}</button>`
+    ).join("");
+    if (seg.dataset.bound) return;
+    seg.dataset.bound = "1";
+    seg.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-v]");
+      if (!btn || !seg.contains(btn)) return;
+      e.preventDefault();
+      input.value = btn.dataset.v;
+      $$("#" + seg.id + " .btn").forEach(b => {
+        b.classList.toggle("pri", b === btn);
+      });
+    });
+  };
+  bind("#fillConcSeg", "#fillConc", [1, 2, 3, 4, 5, 6, 7, 8]);
+  bind("#fillVariantsSeg", "#fillVariantsN", [1, 2, 3, 4, 5, 6]);
+  bind("#fillImgVariantsSeg", "#fillImgVariantsN", [1, 2, 3, 4]);
+  // Язык текста: кнопки уже в HTML — только синхронизация классов.
+  const langSeg = $("#fillTextLangSeg");
+  const langInp = $("#fillTextLang");
+  if (langSeg && langInp && !langSeg.dataset.bound) {
+    langSeg.dataset.bound = "1";
+    langSeg.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-v]");
+      if (!btn || !langSeg.contains(btn)) return;
+      e.preventDefault();
+      langInp.value = btn.dataset.v;
+      $$("#fillTextLangSeg .btn").forEach(b => b.classList.toggle("pri", b === btn));
+    });
+  }
+}
+
+function fillImgVariantsN() {
+  return Math.max(1, Math.min(4, +$("#fillImgVariantsN")?.value || 1));
+}
+
+function fillTextLang() {
+  const v = ($("#fillTextLang")?.value || "ru").toLowerCase();
+  return v.startsWith("en") ? "en" : "ru";
+}
+
+function autoGrowTextarea(el) {
+  if (!el) return;
+  const min = parseInt(getComputedStyle(el).minHeight, 10) || 64;
+  el.style.height = "auto";
+  el.style.height = Math.max(min, el.scrollHeight) + "px";
+}
+
+function fillBindGrowTextareas() {
+  ["#fillDesc", "#fillFilling", "#fillArtExtra", "#fillManualList"].forEach(sel => {
+    const el = $(sel);
+    if (!el || el.dataset.growBound) return;
+    el.dataset.growBound = "1";
+    const grow = () => autoGrowTextarea(el);
+    el.addEventListener("input", grow);
+    el.addEventListener("change", grow);
+    el.addEventListener("paste", () => setTimeout(grow, 0));
+    grow();
+  });
+}
+
+function fillGetTitle() {
+  return ($("#fillTitle")?.value || "").trim();
+}
+function fillGetDesc() {
+  return ($("#fillDesc")?.value || "").trim();
+}
+function fillGetFilling() {
+  return ($("#fillFilling")?.value || "").trim();
+}
+/** Описание стиля + наполнение — то, что уходит в brief/plan/parse. */
+function fillDescriptionPayload() {
+  const d = fillGetDesc();
+  const f = fillGetFilling();
+  if (d && f) return `${d}\n\n${f}`;
+  return d || f;
+}
+
+function fillGateReasons() {
+  const reasons = [];
+  if (!fillGetTitle()) reasons.push("название");
+  if (!fillGetDesc()) reasons.push("описание (цвет и стиль)");
+  return reasons;
+}
+
+function fillRequireTitleDesc(action) {
+  const reasons = fillGateReasons();
+  if (!reasons.length) return true;
+  const msg = `${action}: сначала задай ${reasons.join(" и ")}`;
+  toast(msg, "bad");
+  fillLog(msg, "bad");
+  return false;
+}
+
+function fillSetBtnGate(btn, enabled, whenDisabledTitle, whenEnabledTitle) {
+  if (!btn) return;
+  // Не ставим native disabled — иначе title/tooltip и клик-нотифай не срабатывают.
+  btn.classList.toggle("is-gated", !enabled);
+  btn.setAttribute("aria-disabled", enabled ? "false" : "true");
+  btn.title = enabled ? (whenEnabledTitle || "") : whenDisabledTitle;
+  if (enabled) btn.removeAttribute("disabled");
+  else btn.removeAttribute("disabled"); // кликабельно → toast
+}
+
+function fillBtnIsGated(btn) {
+  return !!(btn && btn.getAttribute("aria-disabled") === "true");
+}
+
+function fillSyncGates() {
+  const hasTitle = !!fillGetTitle();
+  const hasDesc = !!fillGetDesc();
+  const ready = hasTitle && hasDesc;
+  const miss = fillGateReasons();
+  const needTitle = "Сначала задай название коллекции";
+  const needBoth = "Сначала задай название и описание (цвет / стиль)";
+  const needBothShort = miss.length
+    ? `Нужны: ${miss.join(" и ")}`
+    : "";
+
+  fillSetBtnGate(
+    $("#fillDescDice"),
+    hasTitle,
+    needTitle,
+    "Сгенерировать описание по названию",
+  );
+  fillSetBtnGate(
+    $("#fillFillingDice"),
+    ready,
+    needBoth,
+    "Сгенерировать наполнение по названию и описанию",
+  );
+  fillSetBtnGate(
+    $("#fillArtExtraDice"),
+    ready,
+    needBoth,
+    "Сгенерировать English mood к арту",
+  );
+  const hasFilling = !!fillGetFilling();
+  const hasSubjects = FILL.cards.some(c => c.subject);
+  fillSetBtnGate(
+    $("#fillTransferText"),
+    ready && hasFilling,
+    ready
+      ? "Сначала задай наполнение (п.3)"
+      : needBoth,
+    "Создать карточки из п.3 без повторной генерации",
+  );
+  fillSetBtnGate(
+    $("#fillPlan"),
+    ready,
+    needBoth,
+    "Придумать объекты (AI, без картинок)",
+  );
+  fillSetBtnGate(
+    $("#fillGo"),
+    hasSubjects,
+    "Сначала перенеси текст в карточки",
+    "Сгенерировать арты для карточек с subject",
+  );
+
+  const banner = $("#fillGateBanner");
+  if (banner) {
+    if (ready && hasFilling) {
+      banner.innerHTML = `<span class="pill ok">текст готов</span> можно «Перенести текст» в карточки`;
+    } else if (ready) {
+      banner.innerHTML = `<span class="pill warn">нужно наполнение</span> сгенерируй или вставь список в п.3`;
+    } else {
+      banner.innerHTML =
+        `<span class="pill warn">текст заблокирован</span> ${colEsc(needBothShort || needBoth)}`;
+    }
+  }
+  fillSyncNextBtn();
+}
+
 async function fillSuggest(kind) {
-  const title = $("#fillTitle").value.trim();
-  if (!title) return toast("Сначала название коллекции", "bad");
+  const title = fillGetTitle();
+  const description = fillGetDesc();
+  if (kind === "description") {
+    if (!title) return toast("Сначала задай название коллекции", "bad");
+  } else if (kind === "filling" || kind === "art_extra") {
+    if (!title || !description) {
+      return toast("Сначала задай название и описание (цвет / стиль)", "bad");
+    }
+  } else {
+    return toast("Неизвестный тип генерации", "bad");
+  }
+
   fillFillPresets();
-  const presetId = $("#fillPreset").value;
+  const presetId = kind === "art_extra"
+    ? (fillImagePresetId() || fillTextPresetId())
+    : fillTextPresetId();
   if (!presetId) return toast("Выбери пресет моделей", "bad");
 
-  const isDesc = kind === "description";
-  const btn = $(isDesc ? "#fillDescDice" : "#fillArtExtraDice");
-  const field = $(isDesc ? "#fillDesc" : "#fillArtExtra");
+  const fieldMap = {
+    description: "#fillDesc",
+    filling: "#fillFilling",
+    art_extra: "#fillArtExtra",
+  };
+  const btnMap = {
+    description: "#fillDescDice",
+    filling: "#fillFillingDice",
+    art_extra: "#fillArtExtraDice",
+  };
+  const labelMap = {
+    description: "описание",
+    filling: "наполнение",
+    art_extra: "доп. mood к арту",
+  };
+  const btn = $(btnMap[kind]);
+  const field = $(fieldMap[kind]);
   if (btn) btn.disabled = true;
-  fillLog(`🎲 ${isDesc ? "описание" : "доп. к арту"}…`, "dim");
+  fillLog(`🎲 ${labelMap[kind]}…`, "dim");
   try {
     const d = await api("/api/collection/fill/suggest", {
       method: "POST",
       body: {
         kind,
         title,
-        description: $("#fillDesc").value,
+        description,
         hint: field?.value || "",
         preset_id: presetId,
+        lang: kind === "art_extra" ? "en" : fillTextLang(),
       },
     });
     if (field) field.value = d.text || "";
+    if (field) autoGrowTextarea(field);
+    fillSyncGates();
     fillLog(
-      `🎲 ${isDesc ? "описание" : "доп. к арту"} готово` +
+      `🎲 ${labelMap[kind]} готово` +
         (d.cost_usd ? ` · ${formatCost(d.cost_usd)}` : ""),
       "ok",
     );
-    toastCost(isDesc ? "Описание" : "Доп. к арту", d.cost_usd);
+    toastCost(labelMap[kind][0].toUpperCase() + labelMap[kind].slice(1), d.cost_usd);
   } catch (e) {
     fillLog(e.message, "bad");
     toast(e.message, "bad");
   }
-  if (btn) btn.disabled = false;
+  fillSyncGates();
 }
 
-$("#fillDescDice").onclick = () => fillSuggest("description");
-$("#fillArtExtraDice").onclick = () => fillSuggest("art_extra");
+$("#fillDescDice").onclick = () => {
+  if (fillBtnIsGated($("#fillDescDice"))) {
+    return toast($("#fillDescDice").title || "Сначала задай название коллекции", "bad");
+  }
+  fillSuggest("description");
+};
+$("#fillFillingDice").onclick = () => {
+  if (fillBtnIsGated($("#fillFillingDice"))) {
+    return toast($("#fillFillingDice").title || "Сначала задай название и описание", "bad");
+  }
+  fillSuggest("filling");
+};
+$("#fillArtExtraDice").onclick = () => {
+  if (fillBtnIsGated($("#fillArtExtraDice"))) {
+    return toast($("#fillArtExtraDice").title || "Сначала задай название и описание", "bad");
+  }
+  fillSuggest("art_extra");
+};
+
+["#fillTitle", "#fillDesc", "#fillFilling"].forEach(sel => {
+  const el = $(sel);
+  if (!el) return;
+  el.addEventListener("input", fillSyncGates);
+  el.addEventListener("change", fillSyncGates);
+});
+fillSyncGates();
 
 function fillArtExtraResolved() {
   const el = $("#fillArtExtra");
   let v = (el?.value || "").trim();
-  const def = (CFG && (CFG.art_extra_default || CFG.style_lock)) || "";
-  // Старый autofill LoRA конфликтовал с категориями 3–4 — заменяем на Style A.
-  if (/plain simple background|no full scene/i.test(v) && def) {
-    v = def;
-    if (el) el.value = v;
-  }
-  if (!v && def) {
-    v = def;
+  // Старый autofill Style A дублировал style_lock — очищаем.
+  if (/plain simple background|no full scene|keep a playrix icons look/i.test(v)) {
+    // Оставляем только тематические строки (Romance/Comedy/Horror mood…),
+    // выкидываем абзац Style A lock.
+    const lines = v.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    const kept = lines.filter(l =>
+      !/keep a playrix icons look|playrix-like casual|prefer the card composition|plain simple background/i.test(l)
+    );
+    v = kept.join("\n");
     if (el) el.value = v;
   }
   return v;
 }
 
 function fillFillPresets() {
-  const sel = $("#fillPreset");
+  fillFillTextPresets();
+  fillFillImagePresets();
+}
+
+function fillFillOnePresetSelect(selId, noteId, opts) {
+  const sel = $(selId);
   if (!sel) return;
   const cur = sel.value;
   const presets = (CFG && CFG.presets) || [];
   if (!presets.length) {
     sel.innerHTML = '<option value="">нет пресетов — открой Модели</option>';
-    const note = $("#fillPresetNote");
+    const note = $(noteId);
     if (note) note.textContent = "";
     return;
   }
   sel.innerHTML = presets.map(p => {
-    const price = p.cost_fill_usd != null
-      ? ` · ~$${Number(p.cost_fill_usd).toFixed(2)}/запрос`
-      : "";
+    const price = opts.priceKey && p[opts.priceKey] != null
+      ? ` · ~$${Number(p[opts.priceKey]).toFixed(2)}`
+      : (p.cost_fill_usd != null ? ` · ~$${Number(p.cost_fill_usd).toFixed(2)}` : "");
     return `<option value="${p.id}">${p.name}${price}</option>`;
   }).join("");
-  const def = (CFG && CFG.default_preset) || "budget";
+  const preferred = opts.preferred || (CFG && CFG.default_preset) || "budget";
   if ([...sel.options].some(o => o.value === cur) && cur) sel.value = cur;
-  else if ([...sel.options].some(o => o.value === def)) sel.value = def;
+  else if ([...sel.options].some(o => o.value === preferred)) sel.value = preferred;
+  else if ([...sel.options].some(o => o.value === ((CFG && CFG.default_preset) || "budget")))
+    sel.value = (CFG && CFG.default_preset) || "budget";
   else sel.selectedIndex = 0;
   const syncNote = () => {
     const p = presets.find(x => x.id === sel.value);
-    const note = $("#fillPresetNote");
+    const note = $(noteId);
     if (!note) return;
-    note.textContent = p?.note
-      || "Роли: brief → concept → render";
-    // Для LoRA сразу подставляем Comfy Style A lock, если поле пустое.
-    const artExtra = $("#fillArtExtra");
-    if (artExtra && sel.value === "lora" && !(artExtra.value || "").trim()) {
-      artExtra.value = (CFG && (CFG.art_extra_default || CFG.style_lock)) || "";
-    }
+    note.textContent = p?.note || opts.fallbackNote || "";
   };
   sel.onchange = syncNote;
   syncNote();
+}
+
+function fillFillTextPresets() {
+  fillFillOnePresetSelect("#fillTextPreset", "#fillTextPresetNote", {
+    preferred: "balanced",
+    priceKey: "cost_concept_usd",
+    fallbackNote: "brief / concept · текст",
+  });
+}
+
+function fillFillImagePresets() {
+  fillFillOnePresetSelect("#fillImagePreset", "#fillImagePresetNote", {
+    preferred: "lora",
+    priceKey: "cost_image_usd",
+    fallbackNote: "render · картинки",
+  });
+}
+
+function fillTextPresetId() {
+  return ($("#fillTextPreset")?.value || "").trim();
+}
+function fillImagePresetId() {
+  return ($("#fillImagePreset")?.value || "").trim();
 }
 
 function fillUpsertCard(card) {
@@ -802,199 +1467,664 @@ function fillUpsertCard(card) {
     ...prev,
     ...card,
     extra: card.extra != null ? card.extra : (prev.extra || ""),
+    prompt: card.prompt != null ? card.prompt : (prev.prompt || ""),
+    negative: card.negative != null ? card.negative : (prev.negative || ""),
+    merged_extra: card.merged_extra != null ? card.merged_extra : (prev.merged_extra || ""),
+    trigger: card.trigger != null ? card.trigger : (prev.trigger || ""),
+    model: card.model != null ? card.model : (prev.model || ""),
+    seed: card.seed != null ? card.seed : prev.seed,
+    width: card.width != null ? card.width : prev.width,
+    height: card.height != null ? card.height : prev.height,
+    upscaled: card.upscaled != null ? card.upscaled : prev.upscaled,
+    upscale_scale: card.upscale_scale != null ? card.upscale_scale : prev.upscale_scale,
+    upscale_model: card.upscale_model != null ? card.upscale_model : prev.upscale_model,
+    versions: card.versions != null ? card.versions : (prev.versions || []),
   };
   fillDraw();
 }
 
-$("#fillGo").onclick = async () => {
-  const title = $("#fillTitle").value.trim();
-  if (!title) return toast("Задай название коллекции", "bad");
-  fillFillPresets();
-  const presetId = $("#fillPreset").value;
-  if (!presetId) return toast("Выбери пресет моделей", "bad");
-  $("#fillGo").disabled = true;
-  $("#fillToAssemble").disabled = true;
-  FILL.run_id = null;
-  FILL.cost_usd = 0;
-  FILL.variants = [];
-  FILL.active = 0;
-  FILL.cards = Array.from({length: 10}, (_, i) => ({
-    slot: i + 1, name: "", subject: "", category: "1", rarity: 1,
-    url: null, file: null, error: null, extra: "",
-  }));
-  fillDrawVariants();
+function fillPickArtVersion(slot, vi) {
+  const card = FILL.cards[slot - 1];
+  if (!card?.versions?.[vi]) return;
+  const v = card.versions[vi];
+  card.url = v.url;
+  card.file = v.file;
+  card.version = v.version;
+  card.seed = v.seed != null ? v.seed : card.seed;
+  card.prompt = v.prompt || card.prompt;
+  card.model = v.model || card.model;
+  card.upscaled = false;
   fillDraw();
-  const nVar = Math.max(3, Math.min(5, +$("#fillVariantsN").value || 3));
-  $("#fillLog").dataset.clean = "0";
-  fillLog(`Запуск наполнения · ${nVar} вариантов · пресет ${presetId}`);
-  $("#fillStatus").textContent = "работаю…";
+  fillLog(`Слот ${slot}: выбран вариант картинки ${vi + 1}`, "ok");
+}
+
+function fillShowPrompt(slot) {
+  const card = FILL.cards[slot - 1];
+  if (!card) return;
+  const modal = $("#fillPromptModal");
+  if (!modal) return;
+  $("#fillPromptTitle").textContent = `Слот ${slot}: ${card.name || card.subject || "промпт"}`;
+  const rows = [
+    ["model", card.model],
+    ["seed", card.seed],
+    ["size", (card.width && card.height) ? `${card.width}×${card.height}` : ""],
+    ["trigger", card.trigger],
+    ["subject", card.subject],
+    ["category", card.category],
+    ["rarity", card.rarity != null ? `★${card.rarity}` : ""],
+    ["upscale", card.upscaled ? `×${card.upscale_scale || 2} · ${card.upscale_model || "esrgan"}` : ""],
+    ["cost", formatCost(card.cost_usd) || (card.cost_usd != null ? `$${card.cost_usd}` : "")],
+    ["elapsed", card.elapsed_s != null ? `${card.elapsed_s}s` : ""],
+  ].filter(([, v]) => v !== "" && v != null);
+  $("#fillPromptMeta").innerHTML = rows.map(([k, v]) =>
+    `<span>${colEsc(k)}</span><span class="mono">${colEsc(String(v))}</span>`
+  ).join("");
+  const bodyBits = [];
+  if (card.merged_extra && card.prompt && !card.prompt.includes(card.merged_extra.slice(0, 40))) {
+    bodyBits.push("Theme notes:\n" + card.merged_extra + "\n");
+  }
+  bodyBits.push(card.prompt || "(промпт не сохранён для этой карточки)");
+  $("#fillPromptBody").textContent = bodyBits.join("\n");
+  const neg = $("#fillPromptNeg");
+  if (card.negative) {
+    neg.textContent = card.negative;
+    neg.classList.remove("hide");
+  } else {
+    neg.textContent = "";
+    neg.classList.add("hide");
+  }
+  modal.classList.remove("hide");
+}
+
+async function fillUpscale(slot) {
+  const card = FILL.cards[slot - 1];
+  if (!FILL.run_id || !card?.url) return toast("Сначала сгенерируй картинку", "bad");
+  const btn = $(`#fillGrid [data-upscale="${slot}"]`);
+  if (btn) btn.disabled = true;
+  fillLog(`Апскейл слота ${slot} → 2048×2048 (ESRGAN)…`, "dim");
+  $("#fillStatus").textContent = `улучшаю слот ${slot} → 2048…`;
+  try {
+    const d = await api("/api/collection/fill/upscale", {
+      method: "POST",
+      body: { run_id: FILL.run_id, slot, scale: 2 },
+    });
+    fillUpsertCard({ ...card, ...d, upscaled: true });
+    if (d.cost_usd) FILL.cost_usd = (FILL.cost_usd || 0) + (+d.cost_usd || 0);
+    fillLog(
+      `Слот ${slot}: ${d.width || 2048}×${d.height || 2048}` +
+        (d.cost_usd ? ` · ${formatCost(d.cost_usd)}` : ""),
+      "ok",
+    );
+    toastCost(`Слот ${slot} · 2048×2048`, d.cost_usd);
+    $("#fillToAssemble").disabled = false;
+  } catch (e) {
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+    if (/routing оборвался|FAL_KEY/i.test(e.message || "")) {
+      $("#fillStatus").innerHTML =
+        `<span class="pill bad">Апскейл недоступен</span> слот ${slot}`;
+    }
+  }
+  if (btn) btn.disabled = false;
+}
+
+async function fillHardReset(slot) {
+  if (!FILL.run_id) return toast("Сначала создай набор", "bad");
+  const card = FILL.cards[slot - 1] || {};
+  const row = $(`#fillGrid [data-fill-slot="${slot}"]`);
+  const nameEl = row?.querySelector('[data-f="name"]');
+  const subEl = row?.querySelector('[data-f="subject"]');
+  const catEl = row?.querySelector('[data-f="category"]');
+  const rarEl = row?.querySelector('[data-f="rarity"]');
+  const name = nameEl ? (nameEl.value || "").trim() : (card.name || "");
+  const subject = subEl ? (subEl.value || "").trim() : (card.subject || "");
+  const category = catEl ? +(catEl.value || card.category || 1) : (card.category || 1);
+  const rarity = rarEl
+    ? Math.max(1, Math.min(5, +rarEl.value || card.rarity || 1))
+    : (card.rarity || 1);
+  const ok = confirm(
+    `Hard reset слота ${slot}?\n\nУдалит PNG/версии и сбросит арт-мету.\nИмя и subject сохранятся. Доп. к генерации очистится.`,
+  );
+  if (!ok) return;
+  const btn = $(`#fillGrid [data-hard-reset="${slot}"]`);
+  if (btn) btn.disabled = true;
+  fillLog(`Hard reset слота ${slot}…`, "dim");
+  try {
+    const d = await api("/api/collection/fill/hard-reset", {
+      method: "POST",
+      body: { run_id: FILL.run_id, slot, name, subject, category, rarity },
+    });
+    const kept = d.card || {};
+    FILL.cards[slot - 1] = {
+      slot,
+      name: kept.name || name || `Slot ${slot}`,
+      subject: kept.subject != null ? kept.subject : subject,
+      category: kept.category != null ? kept.category : category,
+      rarity: kept.rarity != null ? kept.rarity : rarity,
+      extra: "",
+      url: null,
+      file: null,
+      prompt: "",
+      negative: "",
+      merged_extra: "",
+      trigger: "",
+      model: "",
+      seed: null,
+      error: null,
+      upscaled: false,
+      upscale_scale: null,
+      upscale_model: null,
+      width: null,
+      height: null,
+    };
+    fillDraw();
+    const n = (d.removed || []).length;
+    fillLog(
+      `Слот ${slot}: hard reset` + (n ? ` · удалено файлов: ${n}` : " · файлов не было"),
+      "ok",
+    );
+    toast(`Слот ${slot} сброшен`, "ok");
+    fillSyncNextBtn();
+  } catch (e) {
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+    if (btn) btn.disabled = false;
+  }
+}
+
+$("#fillPromptClose").onclick = () => $("#fillPromptModal").classList.add("hide");
+$("#fillPromptModal").onclick = (e) => {
+  if (e.target === $("#fillPromptModal")) $("#fillPromptModal").classList.add("hide");
+};
+
+function fillRenderParsePreview(d) {
+  const box = $("#fillParsePreview");
+  if (!box) return;
+  const declared = d.declared_n != null ? d.declared_n : "—";
+  const mismatch = d.mismatch
+    ? `<span class="pill bad">n=${declared} ≠ найдено ${d.count}</span>`
+    : `<span class="pill ok">ok</span>`;
+  const list = (d.cards || []).map(c =>
+    `<div style="margin:4px 0"><b>${c.slot}.</b> ${colEsc(c.name || "…")}` +
+    ` <span class="dim">→</span> <span class="mono">${colEsc(c.subject || "")}</span></div>`
+  ).join("") || `<div class="dim">карточки в тексте не найдены</div>`;
+  box.innerHTML =
+    `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">` +
+    `<b>Разбор OpenRouter</b> ${mismatch}` +
+    `<span class="pill">объявлено [[n]]: ${declared}</span>` +
+    `<span class="pill">найдено: ${d.count}</span>` +
+    (d.cost_usd ? `<span class="pill warn">${formatCost(d.cost_usd)}</span>` : "") +
+    `</div>` +
+    (d.notes ? `<div class="hint" style="margin-bottom:8px">${colEsc(d.notes)}</div>` : "") +
+    list;
+  box.classList.remove("hide");
+}
+
+async function fillParseDescription() {
+  const title = fillGetTitle();
+  const filling = fillGetFilling();
+  const description = fillDescriptionPayload();
+  if (!title) throw new Error("Задай название коллекции");
+  if (!fillGetDesc()) throw new Error("Задай описание (цвет и стиль)");
+  if (!filling) throw new Error("Задай наполнение с разметкой [[n=…]] и списком");
+  fillFillPresets();
+  const presetId = fillTextPresetId();
+  if (!presetId) throw new Error("Выбери пресет текста");
+  return api("/api/collection/fill/parse-description", {
+    method: "POST",
+    body: { title, description, preset_id: presetId, lang: fillTextLang() },
+  });
+}
+
+/** Перед генерацией: OpenRouter-разбор + подтверждение. */
+const FILL_DEFAULT_CATS = ["1", "1", "1", "2", "2", "2", "3", "3", "4", "4"];
+const FILL_DEFAULT_RARITY = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5];
+
+async function fillGateParseBeforeSend(actionLabel) {
+  fillLog(`Проверяю разметку описания через OpenRouter…`, "dim");
+  $("#fillStatus").textContent = "разбор описания…";
+  let d;
+  try {
+    d = await fillParseDescription();
+  } catch (e) {
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+    return null;
+  }
+  fillRenderParsePreview(d);
+  toastCost("Разбор описания", d.cost_usd);
+  fillLog(
+    `Разбор: declared_n=${d.declared_n ?? "—"} · найдено ${d.count}` +
+      (d.notes ? ` — ${d.notes}` : ""),
+    d.mismatch || !d.count ? "bad" : "ok",
+  );
+  if (!d.count) {
+    toast("В наполнении не найдены карточки — добавь [[n=N]] и список", "bad");
+    return null;
+  }
+  const msg =
+    `${actionLabel}: OpenRouter нашёл ${d.count} карточек` +
+    (d.declared_n != null ? ` (в разметке [[n=${d.declared_n}]])` : "") +
+    (d.mismatch ? ".\nЧисла не совпадают." : ".") +
+    "\n\nПродолжить?";
+  if (!window.confirm(msg)) {
+    fillLog("Отменено после разбора описания", "dim");
+    return null;
+  }
+  FILL.lastParse = d;
+  return d;
+}
+
+$("#fillParseBtn").onclick = async () => {
+  const btn = $("#fillParseBtn");
+  if (btn) btn.disabled = true;
+  try {
+    const d = await fillParseDescription();
+    fillRenderParsePreview(d);
+    toastCost("Разбор описания", d.cost_usd);
+    fillLog(`Разбор: ${d.count} карточек` + (d.notes ? ` — ${d.notes}` : ""), d.mismatch ? "bad" : "ok");
+  } catch (e) {
+    fillLog(e.message, "bad");
+    toast(e.message, "bad");
+  }
+  if (btn) btn.disabled = false;
+};
+
+function fillDescHasMarkup(text) {
+  return /\[\[n\s*=\s*\d+\]\]|---\s*cards\s*:\s*\d+\s*---/i.test(text || "");
+}
+
+function fillElementsFromParse(d) {
+  return Array.from({length: 10}, (_, i) => {
+    const c = (d.cards || [])[i];
+    if (!c) {
+      return {
+        name: "",
+        subject: "",
+        category: FILL_DEFAULT_CATS[i],
+        rarity: FILL_DEFAULT_RARITY[i],
+      };
+    }
+    return {
+      name: c.name || "",
+      subject: c.subject || "",
+      category: c.category || FILL_DEFAULT_CATS[i],
+      rarity: c.rarity || FILL_DEFAULT_RARITY[i],
+    };
+  });
+}
+
+async function fillGeneratePending(concurrency) {
+  const pending = FILL.cards.filter(c => c.subject && !c.url);
+  const conc = Math.max(1, Math.min(8, +concurrency || 3));
+  let cursor = 0;
+  async function worker() {
+    while (cursor < pending.length) {
+      const card = pending[cursor++];
+      await fillGenOne(card.slot);
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(conc, pending.length) }, () => worker()),
+  );
+}
+
+function fillParseFillingToElements() {
+  const raw = fillGetFilling();
+  if (!raw) return [];
+  const lines = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
+    .filter(s => !/^\[\[\s*n\s*=/i.test(s))
+    .filter(s => !/^---\s*cards\s*:/i.test(s));
+  const items = [];
+  for (const line of lines) {
+    let body = line.replace(/^\d{1,2}[\.)]\s*/, "").trim();
+    if (!body) continue;
+    let name = "";
+    let subject = body;
+    const m = body.match(/^(.+?)\s*(?:\||—)\s*(.+)$/);
+    if (m) {
+      name = m[1].trim();
+      subject = m[2].trim();
+    } else {
+      const short = subject.split(/\s+/).slice(0, 2).join(" ");
+      name = short.length <= 28 ? short : `Item ${items.length + 1}`;
+    }
+    if (!subject) continue;
+    const i = items.length;
+    items.push({
+      name: name || `Item ${i + 1}`,
+      subject,
+      category: FILL_DEFAULT_CATS[i] || "1",
+      rarity: FILL_DEFAULT_RARITY[i] || 1,
+    });
+    if (items.length >= 10) break;
+  }
+  while (items.length < 10) {
+    const i = items.length;
+    items.push({
+      name: "",
+      subject: "",
+      category: FILL_DEFAULT_CATS[i],
+      rarity: FILL_DEFAULT_RARITY[i],
+    });
+  }
+  return items;
+}
+
+$("#fillTransferText").onclick = async () => {
+  if (fillBtnIsGated($("#fillTransferText"))) {
+    return toast($("#fillTransferText").title || "Нужны название, описание и наполнение", "bad");
+  }
+  if (!fillRequireTitleDesc("Перенести текст")) return;
+  const filling = fillGetFilling();
+  if (!filling) return toast("Сначала задай наполнение (п.3)", "bad");
+
+  fillFillPresets();
+  if (!fillTextPresetId()) return toast("Выбери пресет текста", "bad");
+
+  const btn = $("#fillTransferText");
+  if (btn) btn.classList.add("is-gated");
+  fillLog("Переношу текст из п.3 в карточки…", "dim");
+  $("#fillTextStatus").textContent = "перенос текста…";
 
   try {
-    const res = await fetch("/api/collection/fill", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        title,
-        description: $("#fillDesc").value,
-        art_extra: fillArtExtraResolved(),
-        preset_id: presetId,
-        concurrency: +$("#fillConc").value || 3,
-        n_variants: nVar,
-        variant_index: 0,
-      }),
-    });
-    if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
-      let detail = d.detail;
-      if (Array.isArray(detail))
-        detail = detail.map(x => x.msg || JSON.stringify(x)).join("; ");
-      if (res.status === 404)
-        throw new Error((detail || "Not Found") +
-          " — перезапусти OfferForge (run.bat), API наполнения не подключено");
-      throw new Error(detail || `HTTP ${res.status}`);
+    let elements = fillParseFillingToElements().filter(e => e.subject);
+    if (!elements.length) {
+      throw new Error("В наполнении нет строк вида «Имя | subject»");
     }
-    const reader = res.body.getReader();
-    const dec = new TextDecoder();
-    let buf = "";
-    while (true) {
-      const {value, done} = await reader.read();
-      if (done) break;
-      buf += dec.decode(value, {stream: true});
-      const parts = buf.split("\n\n");
-      buf = parts.pop() || "";
-      for (const chunk of parts) {
-        const line = chunk.split("\n").find(l => l.startsWith("data: "));
-        if (!line) continue;
-        let ev;
-        try { ev = JSON.parse(line.slice(6)); } catch { continue; }
-        if (ev.kind === "status") fillLog(ev.message, "dim");
-        else if (ev.kind === "variants" || ev.kind === "plan") {
-          FILL.run_id = ev.run_id;
-          FILL.palette = ev.palette || FILL.palette;
-          FILL.concept = ev.concept || FILL.concept;
-          FILL.angle = ev.angle || FILL.angle || "";
-          if (ev.active != null) FILL.active = +ev.active;
-          if (ev.variants) FILL.variants = ev.variants;
-          $("#fillConceptPill").textContent = FILL.concept || "";
-          fillDrawVariants();
-          if (ev.kind === "plan" && ev.cost_usd) FILL.cost_usd += +ev.cost_usd || 0;
-          if (ev.kind === "plan") {
-            const nv = (ev.variants || FILL.variants || []).length;
-            fillLog(
-              `План: ${nv || "?"} вариантов` +
-                (ev.angle ? ` · ${ev.angle}` : "") +
-                (ev.concept ? ` — ${ev.concept}` : "") +
-                (ev.cost_usd ? ` · ${formatCost(ev.cost_usd)}` : ""),
-              "ok",
-            );
-            if (ev.cost_usd) toastCost(`Концепты · ${nv || "?"} вар.`, ev.cost_usd);
-          }
-        } else if (ev.kind === "card") {
-          fillUpsertCard(ev);
-          if (ev.cost_usd) FILL.cost_usd += +ev.cost_usd || 0;
-          fillLog(
-            `Слот ${ev.slot}: ${ev.name}` +
-              (ev.cost_usd ? ` · ${formatCost(ev.cost_usd)}` : ""),
-            "ok",
-          );
-        } else if (ev.kind === "card_error") {
-          fillUpsertCard({slot: ev.slot, error: ev.message});
-          fillLog(`Слот ${ev.slot}: ${ev.message}`, "bad");
-        } else if (ev.kind === "done") {
-          FILL.run_id = ev.run_id;
-          FILL.palette = ev.palette || FILL.palette;
-          FILL.concept = ev.concept || FILL.concept;
-          FILL.angle = ev.angle || FILL.angle || "";
-          if (ev.active != null) FILL.active = +ev.active;
-          if (ev.variants) FILL.variants = ev.variants;
-          if (ev.cost_usd != null) FILL.cost_usd = +ev.cost_usd || FILL.cost_usd;
-          fillDrawVariants();
-          (ev.cards || []).forEach(c => {
-            const prev = FILL.cards[(c.slot || 1) - 1];
-            if (prev?.file && /_v\d+\.png$/i.test(prev.file) && prev.file !== c.file) return;
-            fillUpsertCard(c);
-          });
-          const totalCost = formatCost(FILL.cost_usd || ev.cost_usd);
-          $("#fillStatus").innerHTML =
-            `<span class="pill ok">готово</span> ${ev.ok}/${ev.total} · ${ev.run_id}` +
-            (totalCost ? ` · <span class="pill warn">${totalCost}</span>` : "");
-          $("#fillToAssemble").disabled = !(ev.ok > 0);
-          fillLog(`Готово ${ev.ok}/${ev.total}` + (totalCost ? ` · итого ${totalCost}` : ""), "ok");
-          toastCost(`Наполнение · ${ev.ok}/${ev.total}`, FILL.cost_usd || ev.cost_usd);
-        } else if (ev.kind === "fatal") {
-          fillLog(ev.message, "bad");
-          $("#fillStatus").innerHTML = `<span class="pill bad">${ev.message}</span>`;
-          toast(ev.message, "bad");
-        }
-      }
+    // Добиваем до 10 пустыми слотами.
+    while (elements.length < 10) {
+      const i = elements.length;
+      elements.push({
+        name: "",
+        subject: "",
+        category: FILL_DEFAULT_CATS[i],
+        rarity: FILL_DEFAULT_RARITY[i],
+      });
     }
+    await fillSubmitManual(elements);
+    const n = elements.filter(e => e.subject).length;
+    $("#fillTextStatus").innerHTML =
+      `<span class="pill ok">текст перенесён</span> ${n}/10 карточек · дальше — глава «Картинки»`;
+    fillLog(`Текст перенесён · ${n} объектов → карточки (без генерации арта)`, "ok");
+    toast(`Перенесено ${n} объектов в карточки`, "ok");
+  } catch (e) {
+    fillLog(e.message, "bad");
+    $("#fillTextStatus").innerHTML = `<span class="pill bad">${colEsc(e.message)}</span>`;
+    toast(e.message, "bad");
+  }
+  fillSyncGates();
+  fillSyncNextBtn();
+  fillSyncExportPackBtn();
+};
+
+$("#fillGo").onclick = async () => {
+  if (fillBtnIsGated($("#fillGo"))) {
+    return toast($("#fillGo").title || "Сначала перенеси текст в карточки", "bad");
+  }
+  const pending = FILL.cards.filter(c => c.subject && !c.url);
+  if (!pending.length) {
+    return toast("Нет карточек с subject без арта — сначала «Перенести текст»", "bad");
+  }
+  fillFillPresets();
+  const presetId = fillImagePresetId();
+  if (!presetId) return toast("Выбери пресет картинок", "bad");
+  if (!FILL.run_id) return toast("Сначала перенеси текст в карточки", "bad");
+
+  $("#fillGo").disabled = true;
+  $("#fillToAssemble").disabled = true;
+  fillLog(`Рисую ${pending.length} артов · пресет ${presetId}…`, "dim");
+  $("#fillStatus").textContent = "рисую…";
+  try {
+    await fillGeneratePending(+$("#fillConc").value || 3);
+    const ok = FILL.cards.filter(c => c.url).length;
+    $("#fillStatus").innerHTML =
+      `<span class="pill ok">готово</span> ${ok}/10 · ${FILL.run_id}` +
+      (formatCost(FILL.cost_usd) ? ` · <span class="pill warn">${formatCost(FILL.cost_usd)}</span>` : "");
+    fillLog(`Готово ${ok}/10`, "ok");
+    toastCost(`Арты · ${ok}/10`, FILL.cost_usd);
+    $("#fillToAssemble").disabled = ok === 0;
   } catch (e) {
     fillLog(e.message, "bad");
     $("#fillStatus").innerHTML = `<span class="pill bad">${e.message}</span>`;
     toast(e.message, "bad");
   }
-  $("#fillGo").disabled = false;
+  fillSyncGates();
+  fillSyncNextBtn();
+  fillSyncExportPackBtn();
 };
 
 $("#fillPlan").onclick = async () => {
-  const title = $("#fillTitle").value.trim();
-  if (!title) return toast("Задай название коллекции", "bad");
+  if (!fillRequireTitleDesc("Придумать объекты")) return;
+  const title = fillGetTitle();
   fillFillPresets();
-  const presetId = $("#fillPreset").value;
-  if (!presetId) return toast("Выбери пресет моделей", "bad");
+  const presetId = fillTextPresetId();
+  if (!presetId) return toast("Выбери пресет текста", "bad");
   $("#fillPlan").disabled = true;
-  $("#fillGo").disabled = true;
-  $("#fillNextOne").disabled = true;
-  $("#fillToAssemble").disabled = true;
+  $("#fillTransferText")?.classList.add("is-gated");
   $("#fillLog").dataset.clean = "0";
-  const nVar = Math.max(3, Math.min(5, +$("#fillVariantsN").value || 3));
-  fillLog(`Придумываю ${nVar} варианта × 10 объектов · пресет ${presetId}`);
-  $("#fillStatus").textContent = "план…";
+
+  // Если наполнение уже есть — не предлагаем «создать снова», а просим перенести.
+  if (fillDescHasMarkup(fillGetFilling()) || fillParseFillingToElements().some(e => e.subject)) {
+    fillLog("В п.3 уже есть список — жми «Перенести текст», без повторной генерации", "warn");
+    toast("Список уже есть — нажми «Перенести текст»", "ok");
+    fillSyncGates();
+    return;
+  }
+
+  const nVar = Math.max(1, Math.min(6, +$("#fillVariantsN").value || 1));
+  fillLog(`Придумываю ${nVar} варианта × 10 объектов · пресет текста ${presetId}`);
+  $("#fillTextStatus").textContent = "план…";
   try {
     const d = await api("/api/collection/fill/plan", {
       method: "POST",
       body: {
         title,
-        description: $("#fillDesc").value,
+        description: fillDescriptionPayload(),
         preset_id: presetId,
         n_variants: nVar,
+        lang: fillTextLang(),
+      },
+    });
+    FILL.variants = d.variants || [];
+    FILL.active = d.active != null ? +d.active : 0;
+    FILL.angle = d.angle || "";
+    FILL.concept = d.concept || "";
+    FILL.palette = d.palette || [];
+    if (d.run_id) FILL.plan_run_id = d.run_id;
+    if (d.cost_usd) FILL.cost_usd = (FILL.cost_usd || 0) + (+d.cost_usd || 0);
+
+    // Подставляем активный вариант в п.3 (можно переключать кнопками ниже).
+    if (!fillApplyFillingFromVariant(FILL.active)) {
+      const lines = ["[[n=10]]"];
+      (d.cards || []).forEach((c, i) => {
+        if (!c || !c.subject) return;
+        lines.push(`${i + 1}. ${c.name || c.subject} | ${c.subject}`);
+      });
+      if (lines.length < 2) throw new Error("Модель не вернула объекты для наполнения");
+      $("#fillFilling").value = lines.join("\n");
+      autoGrowTextarea($("#fillFilling"));
+    }
+    fillDrawVariants();
+
+    const cost = formatCost(d.cost_usd);
+    const nv = (d.variants || []).length;
+    $("#fillTextStatus").innerHTML =
+      `<span class="pill ok">придумано · ${nv} вар.</span>` +
+      (cost ? ` · <span class="pill warn">${cost}</span>` : "") +
+      (nv > 1
+        ? " · выбери вариант ниже, затем «Перенести текст»"
+        : " · список в п.3 — жми «Перенести текст»");
+    fillLog(
+      `План: ${nv} вариантов` +
+      (d.angle ? ` · ${d.angle}` : "") +
+      " → в п.3; переключай варианты перед переносом",
+      "ok",
+    );
+    toastCost(`План · ${nv} вариантов → п.3`, d.cost_usd);
+  } catch (e) {
+    fillLog(e.message, "bad");
+    $("#fillTextStatus").innerHTML = `<span class="pill bad">${e.message}</span>`;
+    toast(e.message, "bad");
+  }
+  fillSyncGates();
+};
+
+function fillParseManualLines(text) {
+  const lines = (text || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  return lines.slice(0, 10).map((line, i) => {
+    let name = "";
+    let subject = line;
+    const m = line.match(/^(.+?)\s*(?:\||—|-)\s*(.+)$/);
+    if (m) {
+      name = m[1].trim();
+      subject = m[2].trim();
+    }
+    if (!name) {
+      // Короткое русское/латинское слово без пробелов → имя; иначе имя = первые 2 слова subject
+      const short = subject.split(/\s+/).slice(0, 2).join(" ");
+      name = short.length <= 24 ? short : `Item ${i + 1}`;
+    }
+    return {
+      name,
+      subject,
+      category: FILL_DEFAULT_CATS[i] || "1",
+      rarity: FILL_DEFAULT_RARITY[i] || 1,
+    };
+  });
+}
+
+function fillCollectCardElements() {
+  // Сначала синк из DOM, если сетка уже отрисована.
+  $$("#fillGrid [data-fill-slot]").forEach(row => {
+    const slot = +row.dataset.fillSlot;
+    const card = FILL.cards[slot - 1];
+    if (!card) return;
+    const nameEl = row.querySelector('[data-f="name"]');
+    const subEl = row.querySelector('[data-f="subject"]');
+    const catEl = row.querySelector('[data-f="category"]');
+    const rarEl = row.querySelector('[data-f="rarity"]');
+    const extEl = row.querySelector('[data-f="extra"]');
+    if (nameEl) card.name = (nameEl.value || "").trim();
+    if (subEl) card.subject = (subEl.value || "").trim();
+    if (catEl) card.category = (catEl.value || "1").trim();
+    if (rarEl) card.rarity = Math.max(1, Math.min(5, +rarEl.value || 1));
+    if (extEl) card.extra = (extEl.value || "").trim();
+  });
+  return FILL.cards.map((c, i) => ({
+    name: c.name || "",
+    subject: c.subject || "",
+    category: c.category || FILL_DEFAULT_CATS[i] || "1",
+    rarity: c.rarity || FILL_DEFAULT_RARITY[i] || 1,
+  }));
+}
+
+async function fillSubmitManual(elements) {
+  const title = fillGetTitle();
+  if (!title) return toast("Задай название коллекции", "bad");
+  fillFillPresets();
+  const presetId = fillTextPresetId();
+  if (!presetId) return toast("Выбери пресет текста", "bad");
+  const filled = elements.filter(e => (e.subject || "").trim()).length;
+  // Пустой список тоже ок — «Пустые 10 слотов».
+
+  $("#fillManualApply").disabled = true;
+  $("#fillManualEmpty").disabled = true;
+  $("#fillPlan").disabled = true;
+  $("#fillTransferText")?.classList.add("is-gated");
+  fillLog(`Ручной план · ${filled}/10 предметов · пресет текста ${presetId}`, "dim");
+  $("#fillTextStatus").textContent = "ручной план…";
+  try {
+    const d = await api("/api/collection/fill/plan/manual", {
+      method: "POST",
+      body: {
+        title,
+        description: fillDescriptionPayload(),
+        preset_id: presetId,
+        concept: fillGetDesc().slice(0, 160) || title,
+        angle: "ручной список объектов",
+        elements,
       },
     });
     fillApplyPlan(d);
-    const cost = formatCost(d.cost_usd);
-    const nv = (d.variants || []).length;
-    $("#fillStatus").innerHTML =
-      `<span class="pill ok">план · ${nv} вариантов</span> ${d.run_id}` +
-      (cost ? ` · <span class="pill warn">${cost}</span>` : "") +
-      " · выбери вариант и генерируй арт";
-    fillLog(
-      `План: ${nv} вариантов` +
-      (d.angle ? ` · активный: ${d.angle}` : "") +
-      (d.concept ? ` — ${d.concept}` : "") +
-      (cost ? ` · ${cost}` : ""),
-      "ok",
-    );
-    toastCost(`План · ${nv} вариантов`, d.cost_usd);
+    $("#fillTextStatus").innerHTML =
+      `<span class="pill ok">карточки · ${filled}/10</span> ${d.run_id}` +
+      " · дальше глава «Картинки»";
+    fillLog(`Ручной план готов · ${filled} предметов`, "ok");
+    toast(`Карточки · ${filled} предметов`, "ok");
+    const panel = $("#fillManualPanel");
+    if (panel) panel.classList.add("hide");
   } catch (e) {
     fillLog(e.message, "bad");
-    $("#fillStatus").innerHTML = `<span class="pill bad">${e.message}</span>`;
+    $("#fillTextStatus").innerHTML = `<span class="pill bad">${e.message}</span>`;
     toast(e.message, "bad");
   }
-  $("#fillPlan").disabled = false;
-  $("#fillGo").disabled = false;
+  $("#fillManualApply").disabled = false;
+  $("#fillManualEmpty").disabled = false;
   fillSyncNextBtn();
+}
+
+$("#fillManualToggle").onclick = () => {
+  const panel = $("#fillManualPanel");
+  if (!panel) return;
+  panel.classList.toggle("hide");
+  if (!panel.classList.contains("hide")) {
+    fillBindGrowTextareas();
+    autoGrowTextarea($("#fillManualList"));
+  }
+};
+
+$("#fillManualApply").onclick = async () => {
+  const parsed = fillParseManualLines($("#fillManualList").value);
+  if (!parsed.length) {
+    // Если textarea пуста — берём то, что уже введено в карточках.
+    const fromCards = fillCollectCardElements().filter(e => e.subject);
+    if (!fromCards.length) return toast("Вставь список или заполни subject в слотах", "bad");
+    return fillSubmitManual(fromCards);
+  }
+  // Добиваем до 10 пустыми слотами с дефолт cat/rarity.
+  while (parsed.length < 10) {
+    const i = parsed.length;
+    parsed.push({
+      name: "",
+      subject: "",
+      category: FILL_DEFAULT_CATS[i],
+      rarity: FILL_DEFAULT_RARITY[i],
+    });
+  }
+  await fillSubmitManual(parsed);
+  fillSyncGates();
+};
+
+$("#fillManualEmpty").onclick = async () => {
+  const elements = Array.from({length: 10}, (_, i) => ({
+    name: "",
+    subject: "",
+    category: FILL_DEFAULT_CATS[i],
+    rarity: FILL_DEFAULT_RARITY[i],
+  }));
+  await fillSubmitManual(elements);
+  fillLog("Пустые слоты готовы — впиши subject и жми «Сгенерировать»", "ok");
+  fillSyncGates();
 };
 
 async function fillGenOne(slot) {
   const card = FILL.cards[slot - 1];
-  if (!FILL.run_id) return toast("Сначала придумай объекты или создай набор", "bad");
+  if (!FILL.run_id) return toast("Сначала придумай объекты или задай вручную", "bad");
   const row = $(`#fillGrid [data-fill-slot="${slot}"]`);
+  const nameEl = row?.querySelector('[data-f="name"]');
   const subEl = row?.querySelector('[data-f="subject"]');
+  const catEl = row?.querySelector('[data-f="category"]');
+  const rarEl = row?.querySelector('[data-f="rarity"]');
   const extEl = row?.querySelector('[data-f="extra"]');
+  if (nameEl) card.name = (nameEl.value || "").trim() || card.name;
   if (subEl) card.subject = (subEl.value || "").trim() || card.subject;
+  if (catEl) card.category = (catEl.value || "").trim() || card.category;
+  if (rarEl) card.rarity = Math.max(1, Math.min(5, +rarEl.value || card.rarity || 1));
   const extraLive = extEl ? (extEl.value || "").trim() : (card.extra || "");
   card.extra = extraLive;
   if (!card.subject) return toast("Задай subject для слота", "bad");
+  if (!card.name) card.name = card.subject;
 
   const btnOne = $(`#fillGrid [data-gen-one="${slot}"]`);
   const btnNext = $("#fillNextOne");
@@ -1002,6 +2132,7 @@ async function fillGenOne(slot) {
   if (btnNext) btnNext.disabled = true;
   fillLog(
     `Генерация слота ${slot}` +
+      (fillImgVariantsN() > 1 ? ` · ${fillImgVariantsN()} вар. картинки` : "") +
       (extraLive ? ` · доп: ${extraLive.slice(0, 80)}` : ""),
     "dim",
   );
@@ -1012,18 +2143,21 @@ async function fillGenOne(slot) {
       body: {
         run_id: FILL.run_id,
         slot,
-        preset_id: $("#fillPreset").value || null,
+        preset_id: fillImagePresetId() || null,
         art_extra: [fillArtExtraResolved(), extraLive].filter(Boolean).join("\n"),
         subject: card.subject,
         name: card.name,
         category: card.category,
         rarity: card.rarity,
+        n_images: fillImgVariantsN(),
       },
     });
     fillUpsertCard({...d, extra: extraLive, subject: card.subject});
     if (d.cost_usd) FILL.cost_usd = (FILL.cost_usd || 0) + (+d.cost_usd || 0);
+    const nv = (d.versions || []).length;
     fillLog(
       `Слот ${slot}: ${d.name || card.name}` +
+        (nv > 1 ? ` · ${nv} картинок` : "") +
         (d.cost_usd ? ` · ${formatCost(d.cost_usd)}` : ""),
       "ok",
     );
@@ -1037,6 +2171,10 @@ async function fillGenOne(slot) {
     fillUpsertCard({slot, error: e.message});
     fillLog(e.message, "bad");
     toast(e.message, "bad");
+    if (/routing оборвался/i.test(e.message || "")) {
+      $("#fillStatus").innerHTML =
+        `<span class="pill bad">Routing оборвался</span> слот ${slot}`;
+    }
   }
   fillSyncNextBtn();
 }
@@ -1051,18 +2189,26 @@ async function fillRegen(slot) {
   const card = FILL.cards[slot - 1];
   if (!FILL.run_id || !card?.subject) return toast("Сначала создай набор", "bad");
   const row = $(`#fillGrid [data-fill-slot="${slot}"]`);
+  const nameEl = row?.querySelector('[data-f="name"]');
   const subEl = row?.querySelector('[data-f="subject"]');
+  const catEl = row?.querySelector('[data-f="category"]');
+  const rarEl = row?.querySelector('[data-f="rarity"]');
   const extEl = row?.querySelector('[data-f="extra"]');
   // Берём значение прямо из поля — без blur onchange мог не сработать.
+  if (nameEl) card.name = (nameEl.value || "").trim() || card.name;
   if (subEl) card.subject = (subEl.value || "").trim() || card.subject;
+  if (catEl) card.category = (catEl.value || "").trim() || card.category;
+  if (rarEl) card.rarity = Math.max(1, Math.min(5, +rarEl.value || card.rarity || 1));
   const extraLive = extEl ? (extEl.value || "").trim() : (card.extra || "");
   card.extra = extraLive;
   if (!card.subject) return toast("Задай subject для слота", "bad");
+  if (!card.name) card.name = card.subject;
   const btn = $(`#fillGrid [data-regen="${slot}"]`);
   if (btn) btn.disabled = true;
   const artExtraMerged = [fillArtExtraResolved(), extraLive].filter(Boolean).join("\n");
   fillLog(
     `Перегенерация слота ${slot}` +
+      (fillImgVariantsN() > 1 ? ` · ${fillImgVariantsN()} вар.` : "") +
       (artExtraMerged ? ` · доп: ${artExtraMerged.slice(0, 80)}` : " · Style A default"),
     "dim",
   );
@@ -1070,9 +2216,9 @@ async function fillRegen(slot) {
     const d = await api("/api/collection/fill/regenerate", {
       method: "POST",
       body: {
-        title: $("#fillTitle").value.trim(),
-        description: $("#fillDesc").value,
-        preset_id: $("#fillPreset").value || null,
+        title: fillGetTitle(),
+        description: fillDescriptionPayload(),
+        preset_id: fillImagePresetId() || null,
         run_id: FILL.run_id,
         slot,
         subject: card.subject,
@@ -1081,6 +2227,7 @@ async function fillRegen(slot) {
         rarity: card.rarity,
         palette: FILL.palette,
         extra: artExtraMerged,
+        n_images: fillImgVariantsN(),
       },
     });
     fillUpsertCard({...d, extra: extraLive, subject: card.subject});
@@ -1093,6 +2240,7 @@ async function fillRegen(slot) {
           ? `Слот ${slot} обновлён, пожелания учтены в промпте`
           : `Слот ${slot} обновлён — проверь промпт: пожелания могли не попасть`)
         : `Слот ${slot} обновлён (Comfy Style A)`) +
+        ((d.versions || []).length > 1 ? ` · ${(d.versions || []).length} картинок` : "") +
         (d.cost_usd ? ` · ${formatCost(d.cost_usd)}` : ""),
       "ok",
     );
@@ -1101,6 +2249,10 @@ async function fillRegen(slot) {
   } catch (e) {
     fillLog(e.message, "bad");
     toast(e.message, "bad");
+    if (/routing оборвался/i.test(e.message || "")) {
+      $("#fillStatus").innerHTML =
+        `<span class="pill bad">Routing оборвался</span> слот ${slot}`;
+    }
   }
   if (btn) btn.disabled = false;
 }
@@ -1273,7 +2425,8 @@ async function colGenName(i, btn) {
     if (s.file) fd.append("image", s.file, s.fileName || `slot_${i + 1}.png`);
     else fd.append("image_rel", s.imageRel);
     if (CFG?.default_preset) fd.append("preset_id", CFG.default_preset);
-    else if ($("#fillPreset")?.value) fd.append("preset_id", $("#fillPreset").value);
+    else if (fillImagePresetId()) fd.append("preset_id", fillImagePresetId());
+    else if (fillTextPresetId()) fd.append("preset_id", fillTextPresetId());
     const r = await fetch("/api/collection/name-from-art", {method:"POST", body:fd});
     const d = await r.json().catch(() => ({}));
     if (!r.ok) {
@@ -1413,7 +2566,10 @@ async function loadLora() {
   try {
     const d = await api("/api/lora/status");
     $("#loraKeyStatus").innerHTML = d.has_key
-      ? `<span class="pill ok">ключ есть</span> ${d.key_mask}`
+      ? `<span class="pill ok">API ключ есть</span> ${d.key_mask}` +
+        (d.has_admin_key
+          ? ` · <span class="pill ok">Admin</span> ${d.admin_key_mask}`
+          : ` · <span class="pill warn">Admin для баланса нет</span>`)
       : `<span class="pill bad">ключ не сохранён</span>`;
     const ds = d.dataset || {};
     $("#loraDatasetStats").innerHTML = `
@@ -1444,6 +2600,20 @@ $("#loraSaveKey").onclick = async () => {
     $("#loraKey").value = "";
     toast(`FAL_KEY сохранён · ${d.key_mask}`, "ok");
     loadLora();
+    refreshBilling(true);
+  } catch (e) { toast(e.message, "bad"); }
+};
+
+$("#loraSaveAdminKey").onclick = async () => {
+  try {
+    const d = await api("/api/lora/admin-key", {
+      method: "POST",
+      body: { api_key: $("#loraAdminKey").value.trim() },
+    });
+    $("#loraAdminKey").value = "";
+    toast(`FAL_ADMIN_KEY сохранён · ${d.key_mask}`, "ok");
+    loadLora();
+    refreshBilling(true);
   } catch (e) { toast(e.message, "bad"); }
 };
 
@@ -1541,7 +2711,7 @@ $("#loraApply").onclick = async () => {
   try {
     const d = await api("/api/lora/apply", {
       method:"POST",
-      body:{ lora_url: $("#loraUrl").value.trim(), scale: 1.0, enable: true },
+      body:{ lora_url: $("#loraUrl").value.trim(), scale: 0.9, enable: true },
     });
     toast(d.message || "Подключено", "ok");
     loadLora();

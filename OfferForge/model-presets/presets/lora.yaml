@@ -1,12 +1,11 @@
-# LoRA на стиль Icons — своя модель + откат на OpenRouter.
+# LoRA на стиль Icons — ТОЛЬКО FLUX.1 [dev] + LoRA через fal.
 # Триггер plrxcard ставится первым словом промпта (см. VariantConfig.trigger).
+# Откатов на OpenRouter/Gemini для арта НЕТ: если fal недоступен — ошибка routing.
 #
-# Включить после обучения:
+# Включить:
 #   1. FAL_KEY в .env / secrets
-#   2. providers.yaml → fal_lora.enabled: true + URL .safetensors
+#   2. providers.yaml → fal_lora.enabled: true + URL .safetensors + scale
 #   3. Выбрать пресет «LoRA (Icons)» в наполнении
-#
-# Пока fal_lora выключен — ротация уйдёт на openrouter_images с art-refs.
 
 variants:
   default:
@@ -35,19 +34,6 @@ variants:
         effort: none
     timeout: 90
 
-  concept:
-    model_name: google/gemini-3.5-flash-lite
-    model_params:
-    - name: google/gemini-3.5-flash-lite
-      provider_id: openrouter
-      temperature: 1.0
-    default_params:
-      temperature: 1.0
-      max_tokens: 8000
-      reasoning:
-        effort: none
-    timeout: 180
-
   critic:
     model_name: google/gemini-3.5-flash-lite
     model_params:
@@ -61,6 +47,19 @@ variants:
         effort: none
     timeout: 90
 
+  concept:
+    model_name: google/gemini-3.5-flash-lite
+    model_params:
+    - name: google/gemini-3.5-flash-lite
+      provider_id: openrouter
+      temperature: 1.0
+    default_params:
+      temperature: 1.0
+      max_tokens: 8000
+      reasoning:
+        effort: none
+    timeout: 180
+
   render:
     trigger: plrxcard
     model_name: flux-lora
@@ -69,13 +68,5 @@ variants:
       provider_id: fal_lora
       size: 1024x1024
       n_reference_images: 0
-    - name: black-forest-labs/flux.2-pro
-      provider_id: openrouter_images
-      size: 1024x1024
-      n_reference_images: 4
-    - name: google/gemini-2.5-flash-image
-      provider_id: openrouter_images
-      size: 1024x1024
-      n_reference_images: 1
     default_params: {}
     timeout: 300

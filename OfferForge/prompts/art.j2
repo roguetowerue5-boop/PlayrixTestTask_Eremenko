@@ -1,10 +1,10 @@
 {# Positive как в ComfyUI Icons Style A (icons_flux_gguf.json / Icons_flux_comfy_guide).
-   Порядок: trigger → STYLE LOCK → subject sentence → категория → avoid. #}
+   Порядок: trigger → STYLE LOCK → subject → категория → фон по категории. #}
 {% if trigger is defined and trigger %}{{ trigger }}, {% endif %}{{ style_lock() }}
 
-A glossy stylized 3D render of {{ subject }}, single hero object slightly three-quarter view, centered in frame, polished materials with bright specular hits, hyper-saturated candy colors, soft studio lighting, polished casual mobile-game collectible icon.
+A glossy stylized 3D render of {{ subject }}, single hero object slightly three-quarter view, centered in frame, polished materials with bright specular hits, Playrix casual mobile-game collectible icon (keep the object's real materials/colors), soft studio lighting.
 
-MUST DRAW THIS OBJECT ONLY: {{ subject }}.
+HERO OBJECT (must match): {{ subject }}.
 {% if extra %}
 
 MUST FOLLOW — producer notes for this image (do not ignore):
@@ -17,17 +17,28 @@ do NOT force every card into a blank floating studio void unless this is categor
 
 color palette: {{ palette_words(palette) }}
 
-avoid: {{ negative_prompt() }}, hands, fingers, photorealistic skin, copying reference subjects
+avoid: {{ negative_prompt() }}, photorealistic skin, copying reference subjects
+{# Do NOT put bare "photograph" / "camera" in avoid — kills movie cameras & binoculars. #}
 {% if category|string != "5" %}
 avoid also: people, characters, crowds
 {% endif %}
 
-SUBJECT LOCK AGAIN: the subject is "{{ subject }}" — nothing else.
 {% if trigger is defined and trigger %}
-If this is category 1–2, keep it icon-like and simple (Style A backdrop: sunburst / gradient / quiet pattern).
-If this is category 3–4, allow the grounded surface / environment required by
-the category, but keep "{{ subject }}" dominant in frame.
-If this is category 5, allow one–two characters as the subject description says.
+{% if category|string == "1" %}
+Cat 1 staging (TZ): hero floats in air; monochrome gradient OR simple pattern backdrop
+(stripes / repeating motif / flat color / light rays). No landscape.
+{% elif category|string == "2" %}
+Cat 2 staging (TZ): hero on a simple surface; behind — vertical monochrome gradient OR simple pattern
+(stripes / motif / light rays). No full location.
+{% elif category|string == "3" %}
+Cat 3 staging (TZ): hero on a realistic surface (volumetric ground); behind — vertical monochrome
+gradient OR simple pattern (stripes / light rays), not a full outdoor world.
+{% elif category|string == "4" %}
+Cat 4 staging (TZ): full realistic environment REQUIRED (field, sea, beach, museum, sky, stylized
+mountains/hills OK) while "{{ subject }}" stays the clear central hero.
+{% elif category|string == "5" %}
+Cat 5 staging (TZ gold): one or two characters in a simple narrative beat; environment like cat.4.
+{% endif %}
 {% else %}
 If reference images are attached: copy ONLY materials, lighting and stylization.
 Do NOT copy objects from references. Replace them entirely with "{{ subject }}".

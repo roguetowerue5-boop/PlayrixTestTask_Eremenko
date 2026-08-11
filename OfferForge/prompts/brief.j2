@@ -1,31 +1,31 @@
-Ты — арт-директор мобильной игры. Разбери свободный заказ продюсера в структуру.
+You are an art director for a mobile game. Parse the producer's free-form brief into structure.
 
-ТЕМА КОЛЛЕКЦИИ: {{ theme }}
+COLLECTION THEME: {{ theme }}
 
-СВОБОДНЫЕ ПОЖЕЛАНИЯ ПРОДЮСЕРА:
-{{ wishes if wishes else "(не указаны)" }}
+PRODUCER WISHES:
+{{ wishes if wishes else "(none)" }}
 
-КОНТЕКСТ: это набор коллекционных карточек для мобильной казуальной игры.
+CONTEXT: collectible cards for a casual mobile game.
 {{ collection_structure() }}
 
-Верни строго JSON без пояснений:
+{{ output_lang_rules(lang) }}
+
+Return STRICT JSON with no commentary:
 {
-  "theme": "уточнённая тема одной строкой",
-  "genre": "жанр или поджанр, если он читается из заказа, иначе null",
-  "mood": ["2-4 слова о настроении"],
-  "palette": ["3-5 цветов в hex, которые задают палитру набора"],
-  "era": "эпоха или период, если уместно, иначе null",
-  "must_include": ["что продюсер явно попросил включить"],
-  "must_avoid": ["что продюсер явно попросил исключить"],
-  "notes": "одно-два предложения: как ты понял задачу"
+  "theme": "refined theme in one line (OUTPUT LANGUAGE)",
+  "genre": "genre/subgenre if clear from the brief, else null",
+  "mood": ["2-4 mood words (OUTPUT LANGUAGE)"],
+  "palette": ["3-5 hex colors for the set palette"],
+  "era": "era/period if relevant, else null",
+  "must_include": ["only items the producer explicitly asked to include"],
+  "must_avoid": ["only items the producer explicitly asked to exclude"],
+  "notes": "one or two sentences: how you understood the task (OUTPUT LANGUAGE)"
 }
 
-Правила:
-- Не выдумывай ограничений, которых нет в заказе: must_include и must_avoid
-  заполняются ТОЛЬКО из явно сказанного продюсером.
-- Если жанр назван (хоррор, нуар, вестерн, фантастика) — вынеси его в genre
-  и подбери палитру под него, а не общую.
-- Палитра насыщенная и контрастная: это мобильная казуалка, карточки
-  читаются размером с иконку.
-- must_avoid дополнительно к сказанному не расширяй — общие запреты
-  (текст, бренды, реальные люди) и так зашиты в правила генерации.
+Rules:
+- Do not invent constraints: must_include / must_avoid only from explicit producer text.
+- If a genre is named (horror, noir, western, sci-fi) — put it in genre and pick a matching palette.
+- Palette should be readable at icon size (enough contrast); match the brief mood —
+  do not force candy colors if the brief asks for noir / muted / dark tones.
+- Do not expand must_avoid beyond what was said — global bans (text, brands, real people)
+  are already in generation rules.

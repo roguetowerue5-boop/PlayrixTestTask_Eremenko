@@ -31,7 +31,7 @@ presets:
 - id: lora
   name: LoRA (Icons)
   file: presets/lora.yaml
-  note: "своя Flux-LoRA на Icons (fal, scale 1.25) · откат OpenRouter · ~$0.025/картинка"
+  note: "FLUX.1 Dev + LoRA only (fal, scale 0.9) · без отката · ~$0.025/картинка"
   cost_fill_usd: 0.30
   cost_image_usd: 0.025
   cost_concept_usd: 0.01

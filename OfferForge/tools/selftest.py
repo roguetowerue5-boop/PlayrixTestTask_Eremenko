@@ -141,11 +141,14 @@ def test_prompts() -> None:
     check("legacy-промпты убраны из активных",
           not ({"concepts", "critic", "segment", "part_extract", "dissect"} & set(names)),
           str(names))
-    art = engine.render("art", subject="film reel", category="2", palette=["#f00"], extra="")
-    check("art.j2 подставляет правило категории", "standing/resting on a simple flat surface" in art)
-    check("art.j2 подставляет стилевые правила", "stylized 3D render" in art)
-    check("art.j2 тянет negative_prompt", "avoid:" in art.lower())
-    check("art.j2 Style A lock из Comfy", "Playrix-like casual mobile game icon" in art)
+    art = engine.render("art", subject="film reel", category="2", palette=["#f00"], extra="", seed=42, trigger="plrxcard")
+    check("art.j2 Style A lock", "Playrix-like casual mobile game icon" in art)
+    check("art.j2 subject sentence", "glossy stylized 3D render of film reel" in art)
+    check("art.j2 hero lock", "HERO OBJECT (must match): film reel" in art)
+    check("art.j2 category rule", "Cat 2" in art and "simple surface" in art)
+    check("art.j2 без nothing else", "nothing else" not in art)
+    check("art.j2 cat4 mountains allowed", "mountains" in engine.render(
+        "art", subject="projector", category="4", palette=["#0af"], extra="", trigger="plrxcard").lower())
     fill = engine.render(
         "collection_fill",
         title="Test",
@@ -153,6 +156,8 @@ def test_prompts() -> None:
         brief={"theme": "farm", "must_include": ["tractor"], "must_avoid": [],
                "mood": ["warm"], "palette": ["#0a0"], "genre": None},
         n_elements=10,
+        n_variants=1,
+        lang="en",
     )
     check("collection_fill видит бриф", "tractor" in fill)
     check("name_from_art рендерится", bool(engine.render("name_from_art")))

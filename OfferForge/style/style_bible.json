@@ -1,90 +1,83 @@
 {
   "_comment": "Единственный источник правды по стилю и правилам коллекции. Стиль сверен с ComfyUI Icons Style A (Icons_flux_comfy_guide / icons_flux_gguf.json) и датасетом Icons/.",
 
-  "summary": "Playrix-like casual mobile game icon: glossy stylized 3D render, single hero object, hyper-saturated candy colors, soft studio light from above-left, match-3 collectible polish.",
+  "summary": "Playrix-like casual mobile game icon: glossy stylized 3D, single hero object, soft studio light, match-3 collectible polish.",
 
-  "style_lock": "Playrix-like casual mobile game icon, glossy stylized 3D render, single hero object centered in frame filling most of the image, smooth rounded chunky shapes with soft beveled edges, high-gloss plastic and clay materials with crisp specular highlights, no surface noise, no grit, hyper-saturated candy colors, bright soft studio lighting with key light from above-left, gentle ambient fill, subtle rim light, soft contact shadow under the object when grounded, clean polished match-3 collectible icon, readable silhouette, high production value, high-contrast clear composition, no text, no logo, no watermark",
+  "style_lock": "Playrix-like casual mobile game icon, glossy stylized 3D, single hero centered, rounded chunky shapes, soft bevels, glossy plastic/clay, soft studio light, readable silhouette, no text, no logo",
 
-  "_art_extra_default_comment": "Дефолт для поля «доп. к арту» / 🎲 / LoRA autofill — тот же STYLE LOCK + правило категорий, что в ComfyUI Icons Style A.",
-  "art_extra_default": "Playrix-like casual mobile game icon, glossy stylized 3D render, single hero object centered in frame filling most of the image, smooth rounded chunky shapes with soft beveled edges, high-gloss plastic and clay materials with crisp specular highlights, no surface noise, no grit, hyper-saturated candy colors, bright soft studio lighting with key light from above-left, gentle ambient fill, subtle rim light, soft contact shadow under the object when grounded, clean polished match-3 collectible icon, readable silhouette, high production value, high-contrast clear composition, no text, no logo, no watermark.\n\nBackground and staging MUST follow the card composition category (1 floating / 2 simple surface / 3 realistic surface / 4 full environment) — do NOT force a blank studio void on every card.\nAvoid: photorealistic, photograph, cinematic still, film grain, muted colors, anime, flat vector, text, logo, watermark, UI, multiple competing objects.",
+  "_art_extra_default_comment": "Пусто: стиль уже в style_lock + LoRA. В «доп. к арту» только тематический mood (романтика/комедия…), без повтора Style A.",
+  "art_extra_default": "",
 
-  "_rules_comment": "rules[] — те же слова, что STYLE LOCK в ComfyUI, списком для style_rules(). Тень в style_lock мягкая при grounded; для категории 1 запрет тени задаёт category_rule (forbid).",
+  "_rules_comment": "rules[] — короткий Style A чеклист для style_rules(). Детали категории — в category_rule.",
 
   "rules": [
     "Playrix-like casual mobile game icon, glossy stylized 3D render",
-    "single hero object centered in frame filling most of the image",
-    "smooth rounded chunky shapes with soft beveled edges",
-    "high-gloss plastic and clay materials with crisp specular highlights",
-    "no surface noise, no grit, hyper-saturated candy colors",
-    "bright soft studio lighting with key light from above-left",
-    "gentle ambient fill, subtle rim light",
-    "soft contact shadow under the object when grounded (categories 2–4)",
-    "clean polished match-3 collectible icon, readable silhouette",
-    "high production value, high-contrast clear composition",
-    "no text, no letters, no numbers, no logos, no watermarks, no UI elements",
-    "square composition, no border, no frame, no card frame",
-    "not a photograph, not cinematic still, not anime, not flat vector"
+    "single hero object centered, readable silhouette",
+    "smooth rounded chunky shapes, soft beveled edges",
+    "glossy plastic/clay materials, soft studio light",
+    "soft contact shadow when grounded (categories 2–4)",
+    "no text, logos, watermarks, UI; no photo / cinematic still / anime / flat vector"
   ],
 
-  "negative": "photorealistic, photograph, DSLR, cinematic still, film grain, muted desaturated colors, dark moody atmosphere, harsh shadows, gritty texture, rust, dirt, pores, individual hairs, fine fur strands, mesh grille, tiny illegible details, cluttered background, text, letters, numbers, logo, watermark, signature, UI, hud, frame, border, card border, card frame, flat vector, flat 2D, anime, manga, illustration sketch, oil painting, multiple competing objects, cropped subject, background-only scene, collage, blurry, washed out, low contrast",
+  "negative": "photorealistic snapshot, live-action photo, DSLR photo look, live-action cinematic still, film grain noise, grit, text, logo, watermark, UI overlay, picture frame border, flat vector, anime, collage, blurry, low contrast, disembodied hands, wrong object, abstract blob",
 
   "categories": {
-    "_comment": "Категории композиции из ТЗ. Фоны Style A из Icons: sunburst / radial gradient / quiet pattern — как в Icons_flux_comfy_guide.",
+    "_comment": "Категории 1–5 по ТЗ. Фоны Style A: gradient / pattern / soft sunburst.",
 
     "1": {
       "title_ru": "Простой объект в воздухе",
-      "title_en": "Simple object, floating",
-      "object": "ONE simple object without fine details, floating in mid-air, hanging with no ground contact; NO cast shadow, NO shadow ellipse, nothing touching it",
-      "background": "simple Style A backdrop: single vivid hue with soft radial gradient OR radial sunburst rays OR quiet same-hue pattern (diagonal stripes, gentle waves, quiet diamonds, mild concentric rings). Pattern stays low-contrast and never competes with the object",
-      "forbid": "no floor, no table, no wall plane, no room, no landscape, no second object, no depth cues beyond the flat backdrop"
+      "title_en": "floating",
+      "object": "simple object without tiny detail scatter, hanging in the air, no visible surface under it; silhouette readable (optics/lenses only if essential to read the object)",
+      "background": "monochrome Style A backdrop with soft gradient, OR simple pattern (stripes, repeating motif, flat color, or soft light rays / sunburst)",
+      "forbid": "no floor, table, museum pedestal, room, landscape, second hero object"
     },
     "2": {
       "title_ru": "Простой объект на простой поверхности",
-      "title_en": "Simple object on a simple surface",
-      "object": "ONE simple object without fine details, standing/resting on a simple flat surface with a soft contact shadow directly under it",
-      "background": "behind the object — a simple vertical plane: solid colour with a gentle gradient, OR quiet Style A pattern (stripes, repeating shapes, soft light rays, soft sunburst). Surface under the object is flat and geometric, not photoreal wood/stone",
-      "forbid": "no full environment, no outdoor scenery, no realistic volumetric room, no second hero object"
+      "title_en": "simple surface",
+      "object": "simple object without tiny detail scatter, standing on a simple surface with soft contact shadow; silhouette readable (optics/lenses only if essential)",
+      "background": "object on a surface; behind — a vertical plane that is monochrome with soft gradient OR a simple pattern (stripes, repeating motif, flat color, or soft light rays / sunburst)",
+      "forbid": "no full outdoor/indoor location, no landscape scene, second hero object"
     },
     "3": {
       "title_ru": "Реалистичная поверхность и объёмный фон",
-      "title_en": "Realistic surface and volumetric background",
-      "object": "ONE object standing on a realistic tangible surface (wood, stone, fabric, counter) with a grounded contact shadow; object stays central and large",
-      "background": "volumetric setup: realistic surface in the foreground under the object; behind it keep a SIMPLE Style A backdrop (soft gradient, quiet pattern, mild rays or soft sunburst) — more 3D than cat.2 because of the surface, but NOT a full environment scene",
-      "forbid": "no full outdoor/indoor location, no horizon landscape, no multi-object still life competing with the hero"
+      "title_en": "realistic surface",
+      "object": "object standing on a realistic surface and integrated into that simple realistic ground, large and central; silhouette readable",
+      "background": "realistic surface in front (volumetric ground); behind — a vertical plane that is monochrome with soft gradient OR a simple pattern (stripes / light rays) — not a full outdoor world",
+      "forbid": "no full outdoor/indoor location, no competing still-life clutter, no second hero"
     },
     "4": {
       "title_ru": "Реалистичное окружение",
-      "title_en": "Realistic environment",
-      "object": "ONE object integrated into a realistic surrounding environment but remaining the clear central focus, large in frame, naturally lit and grounded",
-      "background": "a full believable scene with depth (beach, field, street, room, seashore, etc.); environment supports the object, softly readable behind it, not busier than the hero",
-      "forbid": "no floating icon look, no empty flat studio void, no characters/people (unless gold cat.5 is enabled)"
+      "title_en": "full environment",
+      "object": "object integrated into a realistic surrounding environment but remains the clear central focus",
+      "background": "full realistic Style A environment with depth (grass field, sea/coast, beach, museum interior, sky — as in TZ examples); never busier than the hero",
+      "forbid": "no empty studio void, no people (unless cat.5), no second competing hero"
     },
     "5": {
       "title_ru": "Золотая карточка — сюжетная сценка",
-      "title_en": "Golden card — narrative scene",
-      "object": "one or two stylized cartoon characters acting out a tiny ironic narrative; characters stay central and readable at icon size",
-      "background": "realistic environment like category 4 (full scene with depth) framing the little story",
-      "forbid": "no more than two characters, no crowded cast, no unreadable micro-action, no brand-mascot lookalikes"
+      "title_en": "narrative scene",
+      "object": "one or two stylized characters acting out a very simple narrative beat, characters stay central",
+      "background": "realistic environment like category 4 framing the scene",
+      "forbid": "no more than two characters, no crowded cast"
     }
   },
 
   "collection": {
-    "_comment": "Правила устройства коллекции. Взяты из ТЗ и проверяются валидатором в app/pipeline/stages.py — если правишь здесь, сверься с _validate_plan.",
+    "_comment": "Collection layout rules from the brief. Validated in app/pipeline/stages.py — keep in sync with _validate_plan.",
 
-    "structure": "Коллекция посвящена одной широкой теме и состоит из 16 наборов по 10 карточек. Набор — это подтема коллекции.",
+    "structure": "A collection covers one broad theme and contains 16 sets of 10 cards each. A set is a sub-theme of the collection.",
 
     "set_size": 10,
     "sets_per_collection": 16,
 
     "rules": [
-      "Набор — это подтема коллекции: для «Лета» это «Пляж», «Сад», «Спорт».",
-      "Наборы внутри одной коллекции не повторяются и не пересекаются по смыслу.",
-      "Объект узнаётся силуэтом в размере иконки: никаких мелких деталей.",
-      "Внутри одного набора объекты не повторяются.",
-      "В каждом наборе присутствуют все четыре категории композиции из ТЗ: 1 — объект в воздухе, 2 — на простой поверхности, 3 — реалистичная поверхность + простой объёмный фон, 4 — полное реалистичное окружение. Категория не зависит от редкости (звёзд).",
-      "Редкость не влияет на визуальное отображение предмета: одна и та же вещь на 1 и на 5 звёздах рисуется одинаково.",
-      "Никакого текста, надписей, логотипов и узнаваемых торговых марок внутри арта.",
-      "Не используем изображения реальных людей и узнаваемых персонажей — только обобщённые предметы (персонажи — только на золотых картах категории 5, если они включены)."
+      "A set is a sub-theme of the collection: for “Summer” that is “Beach”, “Garden”, “Sports”.",
+      "Sets inside one collection must not repeat or overlap in meaning.",
+      "Objects must read by silhouette at icon size: avoid noisy micro-detail scatter (lenses and clear object parts are fine).",
+      "Objects must not repeat inside one set.",
+      "Every set includes all four composition categories (independent of rarity/stars): 1 — simple object floating in air; 2 — simple object on a simple surface + vertical backdrop; 3 — object on a realistic surface + simple volumetric/vertical backdrop; 4 — object integrated into a realistic environment, still central. Category 5 (gold) is a narrative beat with 1–2 characters only when gold is enabled.",
+      "Rarity does not change how the object looks: the same item at ★1 and ★5 is drawn the same.",
+      "No text, lettering, logos, or recognizable trademarks inside the art.",
+      "No real people or recognizable characters — generalized objects only (characters only on gold category-5 cards when enabled)."
     ],
 
     "rarity_distribution": [1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
@@ -92,20 +85,20 @@
 
     "gold_cards": {
       "enabled": false,
-      "_why": "В текущем задании три набора «Кино-коллекции» делаются БЕЗ золотых карточек. Поддержка остаётся в коде: поставь true, и в набор добавятся карточки категории 5.",
+      "_why": "Current cinema sets are WITHOUT gold cards. Keep code support: set true to add category-5 cards.",
       "rules": [
-        "Золотая карточка = категория 5: сюжетная сценка с фоном как у категории 4 (реалистичное окружение).",
-        "На одной золотой карточке — один или два персонажа, не больше.",
-        "Персонажи разыгрывают ироничную эмоциональную сценку с очень простым нарративом; персонажи остаются в центре кадра.",
-        "16-й набор — гранд-сет: только золотые карточки, тема кульминационная для всей коллекции."
+        "Gold card = category 5: a tiny story beat with a category-4 style environment.",
+        "One gold card has one or two characters, no more.",
+        "Characters play a simple ironic emotional beat; characters stay centered.",
+        "Set 16 is a grand set: gold cards only, climax theme for the whole collection."
       ]
     },
 
     "variant_strategy": [
-      "Варианты набора должны отличаться творческим решением, а не палитрой.",
-      "Плохо: пять наборов одних и тех же предметов в разных цветах.",
-      "Хорошо: разные углы захода на подтему — другой срез, другая эпоха, другая сторона предмета.",
-      "Пересечение объектов между вариантами — не больше двух."
+      "Set variants must differ by creative angle, not by palette.",
+      "Bad: five sets of the same objects in different colors.",
+      "Good: different approaches to the sub-theme — another slice, era, or side of the subject.",
+      "Object overlap between variants — at most two."
     ]
   },
 

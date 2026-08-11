@@ -437,9 +437,21 @@ class CustomRESTProvider(HTTPProvider):
         if not spec:
             raise ProviderError(f"{self.id}: секция image не описана в providers.yaml")
 
+        # Flux/fal часто не принимают отдельный negative в body. Если шаблон
+        # его не подставляет — коротким хвостом в positive (как OpenRouter Image).
+        prompt = req.prompt
+        body_tmpl = spec.get("body") or {}
+        body_dump = json.dumps(body_tmpl, ensure_ascii=False)
+        if req.negative and "${negative}" not in body_dump:
+            # Короткий хвост только для явного мусора; фон/поверхность — по категории Style A.
+            prompt = (
+                f"{prompt.rstrip()}\n\n"
+                f"Do not depict: wrong object, abstract blob, extra competing hero."
+            )
+
         ctx = {
             "model": model,
-            "prompt": req.prompt,
+            "prompt": prompt,
             "negative": req.negative,
             "width": req.width,
             "height": req.height,

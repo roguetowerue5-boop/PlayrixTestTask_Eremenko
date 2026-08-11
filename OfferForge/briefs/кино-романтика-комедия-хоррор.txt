@@ -1,0 +1,104 @@
+================================================================================
+КИНО-НАБОРЫ — формат OfferForge (описание + [[n=10]])
+================================================================================
+Пресет: LoRA (Icons), scale 0.9
+Как вставлять:
+  1) «Название» ← блок НАЗВАНИЕ
+  2) «Описание коллекции» ← целиком блок ОПИСАНИЕ (проза + [[n=10]] + список)
+  3) «Доп. к арту» ← блок ДОП. К АРТУ (или дефолт Style A)
+  4) «Проверить разметку» → затем «Создать 10 карточек» / «Придумать объекты»
+
+Без персонажей, лиц, логотипов и названий реальных фильмов.
+
+
+--------------------------------------------------------------------------------
+ОБЩИЙ «ДОП. К АРТУ» (можно один на все три)
+--------------------------------------------------------------------------------
+Keep a Playrix Icons look: glossy stylized 3D, candy colors, soft studio light.
+Prefer the card composition category for background and staging
+(1 floating / 2 simple surface / 3 realistic surface / 4 full environment).
+Avoid photoreal, cinematic stills, text, logos, UI, people, faces.
+
+
+================================================================================
+1) КИНО-РОМАНТИКА
+================================================================================
+
+НАЗВАНИЕ:
+Кино-романтика
+
+ДОП. К АРТУ:
+Romance cinema mood: warm rose, cream, champagne gold, soft coral accents,
+glossy candy materials, gentle soft light — playful date-night props, not
+photoreal movie stills.
+
+ОПИСАНИЕ (копируй в «Описание коллекции» целиком):
+Подтема кино-коллекции: классическая романтическая мелодрама и свидания на экране. Настроение тёплое, нежное, праздничное. Палитра — розовый, кремовый, шампанское золото, мягкий коралл, пастельный лавандовый. Предметы — реквизит свиданий и любовных писем, узнаваемый силуэтом, без людей и лиц. Категории композиции 1–4. Избегать: хоррор, оружие, грубый комедийный реквизит, современные гаджеты, бренды.
+
+[[n=10]]
+1. Письмо | glossy sealed love letter with wax heart seal
+2. Букет | chunky candy-pink rose bouquet
+3. Кольцо | glossy gold engagement ring with pink gem
+4. Шкатулка | rounded cream jewelry box with heart latch
+5. Бокал | champagne coupe glass with soft gold rim
+6. Свеча | glossy pink candle on simple saucer
+7. Дневник | velvet romance diary with ribbon bookmark on wooden desk
+8. Духи | ornate perfume bottle with crystal stopper on vanity
+9. Скамейка | park bench with two glossy heart balloons nearby
+10. Карусель | miniature fair carousel horse with soft lights
+
+
+================================================================================
+2) КИНО-КОМЕДИЯ
+================================================================================
+
+НАЗВАНИЕ:
+Кино-комедия
+
+ДОП. К АРТУ:
+Comedy cinema mood: lemon yellow, turquoise, coral red, bright white accents,
+glossy toy-like slapstick props, cheerful high-key light — playful gag items,
+not photoreal movie stills.
+
+ОПИСАНИЕ (копируй в «Описание коллекции» целиком):
+Подтема кино-коллекции: лёгкая комедия, водевиль и slapstick-реквизит. Настроение яркое, шуточное, карнавальное. Палитра — лимонный жёлтый, бирюза, коралловый красный, белый, акцент комикс-синего. Предметы — комедийные атрибуты без персонажей и лиц. Категории 1–4. Избегать: хоррор, реалистичное оружие, нуар, логотипы, реальные шоу и фильмы.
+
+[[n=10]]
+1. Пирог | glossy whipped-cream pie ready to throw
+2. Гудок | chunky rubber comedy horn bulb
+3. Маска | glossy smiling comedy theater mask
+4. Банан | shiny yellow banana peel on simple floor tile
+5. Парик | candy-colored clownish curly wig on stand
+6. Нос | glossy red clown nose on plain surface
+7. Торт | towering slapstick cake with tilted layers on table
+8. Мегафон | bright toy megaphone with comic stripes on desk
+9. Ловушка | cartoon glue floor trap with sticky puddle in hallway
+10. Сцена | tiny comedy stage with two spotlights and curtain
+
+
+================================================================================
+3) КИНО-ХОРРОР
+================================================================================
+
+НАЗВАНИЕ:
+Кино-хоррор
+
+ДОП. К АРТУ:
+Campy horror cinema mood: purple, emerald, bone cream, charcoal, ruby accent,
+glossy stylized spooky props, soft dramatic rim light — playful collectible
+fright gadgets, not photoreal gore or cinematic stills.
+
+ОПИСАНИЕ (копируй в «Описание коллекции» целиком):
+Подтема кино-коллекции: стилизованный «приятный страх» — campy horror props, не жестокость. Настроение таинственное, игриво-жуткое. Палитра — фиолетовый, изумруд, костяной крем, уголь, рубиновый акцент без реалистичной крови. Предметы — реквизит ужастиков без людей, лиц и gore. Категории 1–4. Избегать: realistic violence, body horror, лица, франшизы, логотипы.
+
+[[n=10]]
+1. Тыква | glossy carved jack-o-lantern pumpkin
+2. Череп | candy-bone skull candle holder
+3. Глаз | chunky crystal eyeball charm floating
+4. Книга | purple spellbook with glowing clasp on simple slab
+5. Зелье | emerald potion bottle with cork and smoke swirl
+6. Ключ | ornate rusty-gloss skeleton key on stone tile
+7. Зеркало | haunted oval vanity mirror on wooden dresser
+8. Фонарь | old lantern with eerie green glow on tablecloth
+9. Гроб | stylized candy-purple coffin with gold trim in crypt
+10. Замок | miniature haunted castle gate with bats silhouette
